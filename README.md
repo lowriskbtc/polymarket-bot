@@ -53,9 +53,20 @@ Without wallet credentials the bot cannot place orders and runs in paper mode. W
 - **Secrets stay out of the code.** Wallet keys, the Telegram token and the Anthropic key are read from the environment. Use a dedicated wallet funded with an amount you can afford to lose.
 - **Your wallet is public.** Every trade from a Polymarket address is visible on-chain.
 
+## Tests
+
+```bash
+pip install -r requirements-test.txt
+pytest tests
+```
+
+33 unit tests cover the parts that can be checked offline: Kelly sizing and its caps and kill switch, the calibration-driven stake halving, the encrypted env loader (round trip, wrong password, non-interactive runs), and the Platt and isotonic probability calibration. Every protection was verified by a deliberate mutation that the suite catches. The tests never import `polymarket_bot.py` (it builds exchange clients on import), block the network and strip credentials.
+
+Two sizing behaviors are pinned by tests as they are today and are worth a decision: the daily kill switch uses `abs(daily_pnl)`, so a big winning day also stops trading, and a negative-edge Kelly result is floored up to `min_stake` instead of skipping the bet.
+
 ## Known limitations
 
-- One very large file. It works as a single deployable unit but is hard to navigate and has no unit tests.
+- One very large file. It works as a single deployable unit but is hard to navigate; the unit tests cover the sizing, key loading and calibration modules around it, not the monolith itself.
 - Written for one operator on Windows; paths, process supervision and defaults assume that.
 - This snapshot was published without being run, so treat it as source to read and adapt.
 - Strategy parameters are tuned defaults from the author's own backtests, not recommendations.
