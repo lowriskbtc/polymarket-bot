@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ff6600">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>POLY//TERMINAL // ALGO ASSIGNMENTS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg:  #0a0a08;
+  --bg2: #0f0f0c;
+  --bg3: #141410;
+  --bg4: #1a1a16;
+  --border:  #2a2a22;
+  --border2: #3a3a2e;
+  --orange:  #ff6600;
+  --orange2: #ff8800;
+  --orange-dim: rgba(255,102,0,0.15);
+  --orange-glow:rgba(255,102,0,0.06);
+  --green:  #00c87a;
+  --green-dim: rgba(0,200,122,0.12);
+  --red:    #ff3b3b;
+  --red-dim:   rgba(255,59,59,0.12);
+  --blue:   #3b8ee0;
+  --blue-dim:  rgba(59,142,224,0.12);
+  --yellow: #f5c518;
+  --yellow-dim:rgba(245,197,24,0.10);
+  --purple: #a855f7;
+  --purple-dim: rgba(168,85,247,0.12);
+  --text:  #e8e4d0;
+  --text2: #a09880;
+  --text3: #605848;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh;overflow-x:hidden;font-size:13px;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:38px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.topbar-brand{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.15em;color:var(--orange);text-transform:uppercase;padding-right:20px;border-right:1px solid var(--border2);margin-right:20px;}
+.topbar-nav{display:flex;gap:0;}
+.topbar-nav a{font-size:11px;color:var(--text3);text-decoration:none;padding:0 14px;height:38px;display:flex;align-items:center;letter-spacing:0.1em;text-transform:uppercase;border-right:1px solid var(--border);transition:color .15s,background .15s;}
+.topbar-nav a:hover{color:var(--text);background:var(--orange-glow);}
+.topbar-nav a.active{color:var(--orange);background:var(--orange-dim);}
+.topbar-right{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--text3);}
+
+/* MAIN */
+.main{padding:20px;max-width:1400px;margin:0 auto;}
+
+/* BUTTONS */
+.tbtn{display:inline-flex;align-items:center;justify-content:center;padding:5px 14px;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid;border-radius:3px;cursor:pointer;transition:background .15s,color .15s;text-decoration:none;}
+.tbtn-orange{background:var(--orange-dim);color:var(--orange);border-color:var(--orange);}
+.tbtn-orange:hover{background:var(--orange);color:#000;}
+.tbtn-green{background:var(--green-dim);color:var(--green);border-color:rgba(0,200,122,.4);}
+.tbtn-green:hover{background:var(--green);color:#000;}
+.tbtn-red{background:var(--red-dim);color:var(--red);border-color:rgba(255,59,59,.4);}
+.tbtn-red:hover{background:var(--red);color:#fff;}
+.tbtn-ghost{background:var(--bg3);color:var(--text2);border-color:var(--border);}
+.tbtn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.tbtn-sm{padding:3px 10px;font-size:9px;}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.page-title{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--orange);}
+.page-meta{font-size:10px;color:var(--text3);}
+
+/* SYMBOL GRID */
+.sym-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px;margin-bottom:24px;}
+
+/* SYMBOL CARD */
+.sym-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.sym-card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.sym-label{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.12em;color:var(--text);}
+.sym-wr-badge{display:flex;align-items:center;gap:6px;}
+.wr-val{font-size:13px;font-weight:700;}
+.wr-val.good{color:var(--green);}
+.wr-val.ok{color:var(--yellow);}
+.wr-val.none{color:var(--text3);}
+.wr-sub{font-size:9px;color:var(--text3);letter-spacing:0.06em;}
+
+/* TF SECTION */
+.sym-body{padding:10px 14px;}
+.tf-section{margin-bottom:10px;}
+.tf-section:last-child{margin-bottom:0;}
+.tf-label{font-size:9px;font-weight:700;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.tf-label span{background:var(--bg4);border:1px solid var(--border);border-radius:2px;padding:1px 5px;color:var(--orange);font-size:9px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;min-height:26px;align-items:flex-start;}
+
+/* ALGO CHIPS */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:0.08em;border:1px solid;}
+.chip-builtin{background:var(--blue-dim);border-color:rgba(59,142,224,.35);color:var(--blue);}
+.chip-custom{background:var(--purple-dim);border-color:rgba(168,85,247,.35);color:var(--purple);}
+.chip-none{background:var(--bg3);border-color:var(--border);color:var(--text3);font-style:italic;}
+.chip-remove{background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:10px;line-height:1;opacity:0.6;font-family:inherit;}
+.chip-remove:hover{opacity:1;color:var(--red);}
+
+/* ADD ROW */
+.add-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.add-select{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-family:inherit;font-size:9px;flex:1;min-width:0;}
+.add-select:focus{outline:none;border-color:var(--border2);}
+
+/* BEST RESULT ROW */
+.best-result{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.best-algo-name{font-size:10px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.best-stats{display:flex;gap:8px;font-size:9px;color:var(--text3);white-space:nowrap;}
+.best-stats .wr{font-weight:700;}
+.best-stats .wr.good{color:var(--green);}
+.best-stats .wr.ok{color:var(--yellow);}
+
+/* LEGEND */
+.legend{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text3);}
+.legend-dot{width:10px;height:10px;border-radius:2px;}
+
+/* ADD PANEL */
+.add-panel{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:24px;}
+.add-panel-title{font-size:11px;font-weight:700;letter-spacing:0.12em;color:var(--text2);text-transform:uppercase;margin-bottom:12px;}
+.add-form{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;}
+.form-select{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:6px 10px;font-family:inherit;font-size:10px;min-width:140px;}
+.form-select:focus{outline:none;border-color:var(--orange);}
+
+/* WR TABLE */
+.wr-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px;}
+.wr-table-head{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3);font-size:10px;font-weight:700;letter-spacing:0.12em;color:var(--text2);text-transform:uppercase;}
+.wr-table{width:100%;border-collapse:collapse;font-size:10px;}
+.wr-table th{padding:7px 12px;text-align:left;font-size:9px;font-weight:600;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3);}
+.wr-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.wr-table tr:last-child td{border-bottom:none;}
+.wr-table tr:hover td{background:var(--orange-glow);}
+.wr-sym{font-weight:700;color:var(--text);letter-spacing:0.08em;}
+.wr-algo{color:var(--text2);}
+.wr-tf{color:var(--text3);}
+.wr-num{font-weight:700;}
+.wr-num.good{color:var(--green);}
+.wr-num.ok{color:var(--yellow);}
+.wr-num.low{color:var(--text2);}
+.wr-ev{color:var(--text3);}
+.wr-ev.pos{color:var(--green);}
+.wr-signals{color:var(--text3);}
+
+/* HIT RATE BAR */
+.hr-bar-wrap{margin-bottom:8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;}
+.hr-entry{display:flex;align-items:center;gap:5px;font-size:9px;}
+.hr-strat{color:var(--text3);letter-spacing:0.06em;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hr-wr{font-weight:700;font-size:10px;}
+.hr-wr.good{color:var(--green);}
+.hr-wr.ok{color:var(--yellow);}
+.hr-wr.low{color:var(--red);}
+.hr-wr.none{color:var(--text3);}
+.hr-count{color:var(--text3);font-size:8px;}
+.hr-bar{width:40px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.hr-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+
+/* LOADING */
+.loading{padding:40px;text-align:center;color:var(--text3);font-size:11px;letter-spacing:0.1em;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:10px 16px;font-size:11px;color:var(--text);z-index:9998;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--red);color:var(--red);}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  body { padding-bottom: env(safe-area-inset-bottom, 0); }
+  .topbar { padding: 0 12px; height: 48px; }
+  .topbar-brand { font-size: 12px; padding-right: 10px; margin-right: 0; }
+  .topbar-nav { display: none; }
+  .main { padding: 14px 10px 72px; }
+  .sym-grid { grid-template-columns: 1fr; }
+  .sym-card-head { padding: 10px 14px; min-height: 48px; }
+  .sym-label { font-size: 18px; }
+  .chip { font-size: 10px; padding: 5px 10px; }
+  .chip-remove { font-size: 14px; padding: 0 2px; }
+  .add-form { flex-direction: column; }
+  .form-select { min-width: 100%; }
+  .tbtn { min-height: 44px; }
+  .wr-table { font-size: 11px; }
+  .wr-table td, .wr-table th { padding: 6px 8px; }
+}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-nav { display: none; }
+@media(max-width:768px){
+  .mobile-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    height: 56px; background: var(--bg2); border-top: 1px solid var(--border);
+    z-index: 300; padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mobile-nav a {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; text-decoration: none;
+    color: var(--text3); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav a.active { color: var(--orange); }
+  .mobile-nav a:active { background: rgba(255,102,0,0.06); }
+  .mobile-nav-icon { font-size: 18px; line-height: 1; }
+}
+</style>
+<link rel="stylesheet" href="/neuro.css">
+</head>
+<body>
+<script src="/neuro_particles.js"></script>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;">
+    <div class="topbar-brand">POLY//TERMINAL</div>
+    <nav class="topbar-nav">
+      <a href="/">SIGNALS</a>
+      <a href="/algo-display" class="active">ALGO ASSIGNMENTS</a>
+      <a href="/claude-picks">CLAUDE PICKS</a>
+      <a href="/hft">HFT LAB</a>
+      <a href="/btc-hft">BTC ML</a>
+      <a href="/profile">PROFILE</a>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <span id="bt-timestamp">--</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Algo Assignments <span style="font-size:11px;color:var(--amber);font-weight:600;letter-spacing:0.1em;">· BACKTEST-ONLY</span></div>
+      <div class="page-meta" id="page-meta">Loading…</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="tbtn tbtn-ghost" onclick="loadData()">↺ REFRESH</button>
+      <a href="/" class="tbtn tbtn-ghost">◀ DASHBOARD</a>
+    </div>
+  </div>
+
+  <!-- BACKTEST-ONLY DISCLAIMER BANNER (2026-05-23) -->
+  <div style="margin:8px 0 14px;padding:11px 14px;
+              border:1px solid #ff8800;border-left:4px solid #ff8800;
+              border-radius:6px;background:rgba(255,136,0,0.06);
+              font-family:'Share Tech Mono','Courier New',monospace;font-size:11px;line-height:1.55;color:#ffaa33;">
+    <div style="font-weight:700;letter-spacing:1px;margin-bottom:4px;">⚠  ASSIGNMENTS BELOW ARE BACKTEST-ONLY</div>
+    <div style="color:#ccaa77;">
+      The live signal scanner runs <b>built-in strategies hardcoded in Python</b>
+      (FadeGiga, BB-Extreme, Contrarian, GigaV35, DogeV1, GigaFadeSOL5m, etc.).
+      Custom algos saved to <code>algos.json</code> and assigned here are evaluated
+      <b>only by the backtest API</b> (<code>/api/backtest-algo</code>) — they do
+      NOT fire on the SIGNALS tab or generate any live trades.
+      <br>To make a custom algo fire live, the bridge from <code>algo_assignments.json</code>
+      into <code>scan_all_symbols_5m()</code> / <code>scan_all_symbols()</code> needs
+      to be wired up (see polymarket_bot.py:~22884). Tracked separately.
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue-dim);border:1px solid rgba(59,142,224,.4)"></div>Built-in (fires LIVE)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple-dim);border:1px solid rgba(168,85,247,.4)"></div>Custom (backtest-only)</div>
+    <div class="legend-item"><span style="color:var(--green);font-size:10px;font-weight:700;">≥70%</span>&nbsp;Strong WR</div>
+    <div class="legend-item"><span style="color:var(--yellow);font-size:10px;font-weight:700;">60-70%</span>&nbsp;Solid WR</div>
+  </div>
+
+  <!-- SYMBOL CARDS -->
+  <div class="sym-grid" id="sym-grid">
+    <div class="loading">Loading assignments…</div>
+  </div>
+
+  <!-- ADD CUSTOM ALGO PANEL -->
+  <div class="add-panel">
+    <div class="add-panel-title">Assign Custom Algo (for backtest only — does NOT fire live)</div>
+    <div class="add-form">
+      <div class="form-group">
+        <div class="form-label">Symbol</div>
+        <select class="form-select" id="add-symbol">
+          <option value="BTC">BTC</option>
+          <option value="ETH">ETH</option>
+          <option value="SOL">SOL</option>
+          <option value="XRP">XRP</option>
+          <option value="DOGE">DOGE</option>
+          <option value="HYPE">HYPE</option>
+          <option value="BNB">BNB</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Timeframe</div>
+        <select class="form-select" id="add-tf">
+          <option value="15m">15m</option>
+          <option value="5m">5m</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Algo</div>
+        <select class="form-select" id="add-algo" style="min-width:220px;">
+          <option value="">— select algo —</option>
+        </select>
+      </div>
+      <button class="tbtn tbtn-green" onclick="addAssignment()" title="Saves to algo_assignments.json — used by the backtest endpoint, not the live scanner">+ ASSIGN (backtest)</button>
+    </div>
+  </div>
+
+  <!-- FULL BACKTEST RESULTS TABLE -->
+  <div class="wr-table-wrap">
+    <div class="wr-table-head">Last Backtest Results — Top Winners</div>
+    <div id="wr-table-body">
+      <div class="loading">Loading backtest data…</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let _data = null;
+let _hitrates = {};
+
+async function loadData() {
+  try {
+    const r = await fetch('/api/algo-assignments');
+    _data = await r.json();
+    _hitrates = _data.hitrates || {};
+    render(_data);
+  } catch(e) {
+    document.getElementById('sym-grid').innerHTML = '<div class="loading">Failed to load — is the bot running?</div>';
+  }
+}
+
+function render(d) {
+  const { builtin, custom, winrates, saved_algos, bt_meta } = d;
+
+  // Page meta
+  if (bt_meta) {
+    document.getElementById('page-meta').textContent =
+      `Last backtest: ${bt_meta.date} · ${bt_meta.days} days · ${bt_meta.total_results} results · ${bt_meta.winners} winners`;
+    document.getElementById('bt-timestamp').textContent = bt_meta.date;
+  }
+
+  // Populate algo dropdown
+  const algoSel = document.getElementById('add-algo');
+  algoSel.innerHTML = '<option value="">— select algo —</option>';
+  for (const [id, algo] of Object.entries(saved_algos || {})) {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = algo.name || id;
+    algoSel.appendChild(opt);
+  }
+
+  // Render symbol cards
+  const symbols = ['BTC','ETH','SOL','XRP','DOGE','HYPE','BNB'];
+  const grid = document.getElementById('sym-grid');
+  grid.innerHTML = '';
+
+  for (const sym of symbols) {
+    const bi15 = (builtin[sym] || {})['15m'] || [];
+    const bi5  = (builtin[sym] || {})['5m']  || [];
+    const cu15 = ((custom[sym] || {})['15m'] || []);
+    const cu5  = ((custom[sym] || {})['5m']  || []);
+    const wr   = winrates[sym];
+
+    const wrClass = !wr ? 'none' : wr.win_rate >= 70 ? 'good' : wr.win_rate >= 60 ? 'ok' : 'low';
+    const wrText  = wr ? `${wr.win_rate}%` : '--';
+
+    const card = document.createElement('div');
+    card.className = 'sym-card';
+    card.id = `sym-card-${sym}`;
+
+    card.innerHTML = `
+      <div class="sym-card-head">
+        <div class="sym-label">${sym}</div>
+        <div class="sym-wr-badge">
+          <div>
+            <div class="wr-val ${wrClass}">${wrText}</div>
+            <div class="wr-sub">BEST WR</div>
+          </div>
+        </div>
+      </div>
+      <div class="sym-body">
+        ${wr ? `
+        <div class="best-result">
+          <div class="best-algo-name">${wr.algo_name}</div>
+          <div class="best-stats">
+            <span class="wr ${wrClass}">${wr.win_rate}%</span>
+            <span>${wr.tf}</span>
+            <span>${wr.total} trades</span>
+            <span class="${wr.ev > 0 ? 'pos' : ''}" style="color:${wr.ev>0?'var(--green)':'var(--red)'}">EV ${wr.ev>0?'+':''}${wr.ev}</span>
+          </div>
+        </div>` : ''}
+
+        <div class="tf-section">
+          <div class="tf-label"><span>15M</span> Strategies</div>
+          ${hrBar(sym, '15m', [...bi15, ...cu15])}
+          <div class="chips" id="chips-${sym}-15m">
+            ${bi15.map(s => chipBuiltin(sym, '15m', s)).join('')}
+            ${cu15.map(s => chipCustom(sym, '15m', s)).join('')}
+            ${bi15.length === 0 && cu15.length === 0 ? '<span class="chip chip-none">none assigned</span>' : ''}
+          </div>
+        </div>
+
+        <div class="tf-section">
+          <div class="tf-label"><span>5M</span> Strategies</div>
+          ${hrBar(sym, '5m', [...bi5, ...cu5])}
+          <div class="chips" id="chips-${sym}-5m">
+            ${bi5.map(s => chipBuiltin(sym, '5m', s)).join('')}
+            ${cu5.map(s => chipCustom(sym, '5m', s)).join('')}
+            ${bi5.length === 0 && cu5.length === 0 ? '<span class="chip chip-none">none assigned</span>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+
+  // Render winners table
+  renderWinnersTable(d.winners || []);
+}
+
+function hrBar(sym, tf, algoNames) {
+  // algoNames: array of algo/strategy names assigned to this sym+tf
+  const tfRates = (_hitrates[sym] || {})[tf] || {};
+  // Merge all strategies present in predictions for this sym+tf, not just assigned ones
+  const allStrats = new Set([...algoNames, ...Object.keys(tfRates)]);
+  if (!allStrats.size) return '';
+  const entries = [];
+  for (const strat of allStrats) {
+    const d = tfRates[strat];
+    if (!d) continue; // no live data yet
+    const wr = d.win_rate || 0;
+    const cls = wr >= 65 ? 'good' : wr >= 50 ? 'ok' : 'low';
+    const barColor = wr >= 65 ? 'var(--green)' : wr >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const shortStrat = strat.replace(/^CLAUDE-/,'').replace(/_/g,' ');
+    entries.push(`
+      <div class="hr-entry" title="${strat}: ${d.wins}W / ${d.total}T">
+        <span class="hr-strat">${shortStrat}</span>
+        <div class="hr-bar"><div class="hr-bar-fill" style="width:${wr}%;background:${barColor}"></div></div>
+        <span class="hr-wr ${cls}">${wr}%</span>
+        <span class="hr-count">${d.wins}/${d.total}</span>
+      </div>`);
+  }
+  if (!entries.length) return '';
+  return `<div class="hr-bar-wrap">${entries.join('')}</div>`;
+}
+
+function chipBuiltin(sym, tf, name) {
+  return `<span class="chip chip-builtin" title="Built-in strategy">${name}<button class="chip-remove" onclick="removeAssignment('${sym}','${tf}','${name}')" title="Remove built-in">✕</button></span>`;
+}
+
+function chipCustom(sym, tf, name) {
+  return `<span class="chip chip-custom">${name}<button class="chip-remove" onclick="removeAssignment('${sym}','${tf}','${name}')" title="Remove">✕</button></span>`;
+}
+
+function renderWinnersTable(winners) {
+  const wrap = document.getElementById('wr-table-body');
+  if (!winners.length) {
+    wrap.innerHTML = '<div class="loading">No backtest results — run ⚡ MAX backtest first</div>';
+    return;
+  }
+
+  const rows = winners.slice(0, 60).map(w => {
+    const wrClass = w.win_rate >= 70 ? 'good' : w.win_rate >= 60 ? 'ok' : 'low';
+    const evClass = w.ev > 0 ? 'pos' : '';
+    return `<tr>
+      <td><span class="wr-sym">${w.symbol}</span></td>
+      <td><span class="wr-tf">${w.tf}</span></td>
+      <td><span class="wr-algo">${w.algo_name}</span></td>
+      <td><span class="wr-num ${wrClass}">${w.win_rate}%</span></td>
+      <td><span class="wr-signals">${w.total}</span></td>
+      <td><span class="wr-ev ${evClass}">${w.ev > 0 ? '+' : ''}${w.ev}</span></td>
+      <td><span class="wr-signals">${w.signals_per_day}/day</span></td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="wr-table">
+      <thead><tr>
+        <th>Symbol</th><th>TF</th><th>Algo / Strategy</th>
+        <th>Win Rate</th><th>Signals</th><th>EV</th><th>Freq</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+// After any assignment change, kick off a fresh analysis for that symbol
+// so when the user returns to the signals page the chart is already updated.
+async function triggerRescan(sym) {
+  // Fire-and-forget — don't block the UI.  Both TFs in parallel.
+  try {
+    await Promise.all([
+      fetch(`/api/analyze/${sym}`),
+      fetch(`/api/analyze-5m/${sym}`)
+    ]);
+    toast(`Chart rescanned — return to signals to see updated ${sym}`, 'success');
+  } catch(e) { /* silent — rescan is best-effort */ }
+}
+
+async function addAssignment() {
+  const sym   = document.getElementById('add-symbol').value;
+  const tf    = document.getElementById('add-tf').value;
+  const algId = document.getElementById('add-algo').value;
+  if (!algId) { toast('Select an algo first', 'error'); return; }
+
+  const algoName = document.getElementById('add-algo').selectedOptions[0].textContent;
+
+  try {
+    const r = await fetch('/api/algo-assignments/add', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ symbol: sym, tf, algo_id: algId, algo_name: algoName })
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast(`${algoName} → ${sym} ${tf} — rescanning chart…`, 'success');
+      loadData();
+      triggerRescan(sym);
+    } else {
+      toast(d.error || 'Failed', 'error');
+    }
+  } catch(e) { toast('Request failed', 'error'); }
+}
+
+async function removeAssignment(sym, tf, algoName) {
+  try {
+    const r = await fetch('/api/algo-assignments/remove', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ symbol: sym, tf, algo_name: algoName })
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast(`Removed ${algoName} from ${sym} ${tf} — rescanning chart…`, 'success');
+      loadData();
+      triggerRescan(sym);
+    } else {
+      toast(d.error || 'Failed', 'error');
+    }
+  } catch(e) { toast('Request failed', 'error'); }
+}
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => { el.className = 'toast'; }, 2800);
+}
+
+loadData();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(()=>{}));
+}
+</script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="/">
+    <span class="mobile-nav-icon">📡</span>
+    SIGNALS
+  </a>
+  <a href="/algo-display" class="active">
+    <span class="mobile-nav-icon">⚙️</span>
+    ALGOS
+  </a>
+  <a href="/claude-picks">
+    <span class="mobile-nav-icon">🤖</span>
+    PICKS
+  </a>
+  <a href="/profile">
+    <span class="mobile-nav-icon">👤</span>
+    PROFILE
+  </a>
+</nav>
+
+</body>
+</html>

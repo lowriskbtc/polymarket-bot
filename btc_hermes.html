@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#00e5ff">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>NEURO//MATRIX — BTC HERMES</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/neuro_legibility.css">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --void:#020409; --deep:#050c18; --surface:#08111f;
+  --panel:#0b1526; --raise:#0f1c34;
+  --border:rgba(0,229,255,0.08); --border2:rgba(0,229,255,0.18);
+  --plasma:#00e5ff; --plasma2:#00b4cc;
+  --violet:#7c3aed; --bio:#00ff88; --bio2:#00cc6a;
+  --hot:#ff4d6d; --hot2:#cc2244;
+  --amber:#ff8800; --amber2:#ffaa33;
+  --text:#c8d8f0; --text2:#6a85aa; --text3:#2a3d5a;
+  --glow-c:rgba(0,229,255,0.4); --glow-b:rgba(0,255,136,0.4); --glow-h:rgba(255,77,109,0.4);
+}
+html,body{height:100%;}
+body{
+  overflow-y:auto; overflow-x:hidden;
+  background:var(--void); color:var(--text);
+  font-family:'Share Tech Mono',monospace; font-size:12px;
+}
+body::after{
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none; z-index:9998;
+}
+.shell{display:grid; grid-template-rows:48px 1fr; min-height:100vh;}
+.workspace{display:grid; grid-template-columns:330px 1fr; gap:0;}
+
+/* topbar */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px;
+  background:rgba(5,12,24,0.95);
+  border-bottom:1px solid var(--border2);
+  position:sticky; top:0; z-index:100;
+}
+.logo{
+  font-family:'Orbitron',monospace; font-size:11px; font-weight:900;
+  letter-spacing:0.2em; color:var(--plasma); text-decoration:none;
+  text-shadow:0 0 20px var(--glow-c);
+}
+.crumbs{font-size:9px; color:var(--text3); letter-spacing:0.15em;}
+.crumbs a{color:var(--text2); text-decoration:none; transition:color .15s;}
+.crumbs a:hover{color:var(--plasma);}
+.topbar-right{display:flex; gap:14px; align-items:center;}
+.topbar-badge{
+  padding:4px 10px; font-size:9px; font-weight:700; letter-spacing:0.1em;
+  border:1px solid var(--border2); border-radius:2px; color:var(--text2);
+}
+.topbar-clock{color:var(--text2); font-size:10px;}
+
+/* sidebar */
+.sidebar{
+  background:var(--deep); border-right:1px solid var(--border2);
+  padding:14px 14px 28px; overflow-y:auto;
+}
+.section-title{
+  font-family:'Orbitron',monospace;
+  font-size:9px; letter-spacing:0.2em; color:var(--plasma2);
+  margin:18px 0 8px; font-weight:700;
+}
+.section-title:first-child{margin-top:0;}
+
+/* settings */
+.settings-section{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:3px; padding:12px;
+}
+.mode-toggle-row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:6px 0;
+}
+.mode-label{
+  font-size:10px; color:var(--text2); letter-spacing:0.1em;
+}
+.toggle-wrap{display:flex; border:1px solid var(--border2); border-radius:2px; overflow:hidden;}
+.toggle-btn{
+  padding:3px 10px; font-size:9px; font-weight:700; letter-spacing:0.06em;
+  cursor:pointer; transition:all .15s;
+  background:var(--surface); color:var(--text3); border:none; outline:none;
+}
+.toggle-btn:first-child{border-right:1px solid var(--border);}
+.toggle-btn.active-paper{background:rgba(255,170,51,0.15); color:var(--amber2);}
+.toggle-btn.active-live{background:rgba(0,255,136,0.15); color:var(--bio);}
+.stake-row{
+  display:flex; align-items:center; gap:8px; margin-top:8px;
+  padding-top:8px; border-top:1px dashed var(--border);
+}
+.stake-lbl{font-size:10px; color:var(--text2); letter-spacing:0.1em;}
+.stake-input{
+  flex:1; background:var(--surface); border:1px solid var(--border2);
+  color:var(--text); padding:4px 8px; font-family:inherit; font-size:11px;
+  border-radius:2px; outline:none;
+}
+.stake-input:focus{border-color:var(--plasma); box-shadow:0 0 8px var(--glow-c);}
+
+/* stat cards */
+.stats-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  margin-top:8px;
+}
+.stat-card{
+  background:var(--panel); border:1px solid var(--border);
+  padding:10px; border-radius:3px;
+}
+.stat-card .lbl{font-size:9px; color:var(--text2); letter-spacing:0.15em;}
+.stat-card .val{
+  font-family:'Orbitron',monospace; font-size:18px; font-weight:700;
+  color:var(--plasma); margin-top:3px;
+}
+.stat-card .val.bio{color:var(--bio);}
+.stat-card .val.hot{color:var(--hot);}
+.stat-card .val.amber{color:var(--amber);}
+.stat-card .sub{font-size:9px; color:var(--text3); margin-top:2px;}
+
+/* main content */
+.content{padding:18px 22px 40px; overflow-y:auto;}
+.page-hdr{
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+  padding-bottom:12px; border-bottom:1px dashed var(--border);
+}
+.page-hdr h1{
+  font-family:'Orbitron',monospace; font-size:14px; font-weight:700;
+  letter-spacing:0.1em; color:var(--plasma); text-shadow:0 0 12px var(--glow-c);
+}
+.page-mode-badge{
+  padding:4px 10px; font-size:9px; font-weight:700; letter-spacing:0.1em;
+  border:1px solid var(--amber); background:rgba(255,170,51,0.1);
+  color:var(--amber2); border-radius:2px;
+}
+.subhdr{
+  font-size:10px; color:var(--text2); letter-spacing:0.06em;
+  margin-bottom:18px;
+}
+
+/* markov + nightly panels */
+.panel-grid{
+  display:grid; grid-template-columns:1.3fr 1fr; gap:14px;
+  margin-bottom:18px;
+}
+.panel{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:3px; padding:14px;
+}
+.panel h3{
+  font-family:'Orbitron',monospace; font-size:11px; font-weight:700;
+  letter-spacing:0.15em; color:var(--plasma); margin-bottom:10px;
+  border-bottom:1px solid var(--border); padding-bottom:6px;
+}
+.panel .row{
+  display:flex; justify-content:space-between; padding:4px 0;
+  font-size:11px;
+}
+.panel .row .k{color:var(--text2); letter-spacing:0.08em;}
+.panel .row .v{color:var(--text); font-family:'Share Tech Mono',monospace;}
+
+/* markov state hero box */
+.markov-state-box{
+  display:flex; gap:18px; align-items:center; padding:10px 0;
+  margin-bottom:8px; border-bottom:1px solid var(--border);
+}
+.state-pill{
+  font-family:'Orbitron',monospace; font-size:22px; font-weight:900;
+  letter-spacing:0.15em; padding:10px 18px;
+  border:2px solid; border-radius:3px;
+}
+.state-pill.UP{color:var(--bio); border-color:var(--bio); text-shadow:0 0 12px var(--glow-b);}
+.state-pill.DOWN{color:var(--hot); border-color:var(--hot); text-shadow:0 0 12px var(--glow-h);}
+.state-pill.UNKNOWN{color:var(--text3); border-color:var(--text3);}
+.state-meta{flex:1;}
+.state-meta .p-line{font-size:14px; color:var(--text); margin-bottom:4px;}
+.state-meta .p-line span{color:var(--plasma); font-weight:700;}
+.state-meta .n-line{font-size:9px; color:var(--text2); letter-spacing:0.1em;}
+
+/* trades log */
+.trades-section{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:3px; padding:14px; margin-top:18px;
+}
+.trades-section h3{
+  font-family:'Orbitron',monospace; font-size:11px; font-weight:700;
+  letter-spacing:0.15em; color:var(--plasma); margin-bottom:10px;
+  border-bottom:1px solid var(--border); padding-bottom:6px;
+}
+.trades-table{
+  width:100%; border-collapse:collapse;
+  font-size:10px; font-family:'Share Tech Mono',monospace;
+}
+.trades-table th{
+  text-align:left; color:var(--text2); letter-spacing:0.1em;
+  padding:6px 8px; border-bottom:1px solid var(--border);
+}
+.trades-table td{
+  padding:5px 8px; border-bottom:1px solid rgba(0,229,255,0.03);
+  color:var(--text);
+}
+.trades-table tr:hover td{background:rgba(0,229,255,0.04);}
+.trades-table .dir-UP{color:var(--bio); font-weight:700;}
+.trades-table .dir-DOWN{color:var(--hot); font-weight:700;}
+.trades-table .pnl-pos{color:var(--bio);}
+.trades-table .pnl-neg{color:var(--hot);}
+.trades-table .out-WIN{color:var(--bio);}
+.trades-table .out-LOSS{color:var(--hot);}
+.trades-table .out-PUSH{color:var(--amber);}
+.trades-table .out-PENDING{color:var(--text3);}
+.trades-table .out-SOLD{color:var(--plasma);}
+
+/* banner */
+.banner{
+  padding:10px 14px; margin-bottom:14px; border-radius:3px;
+  background:rgba(255,170,51,0.08); border:1px solid var(--amber);
+  color:var(--amber2); font-size:11px;
+}
+.banner.bio{background:rgba(0,255,136,0.08); border-color:var(--bio); color:var(--bio2);}
+.banner.hot{background:rgba(255,77,109,0.08); border-color:var(--hot); color:var(--hot2);}
+
+/* nightly rationale */
+.nightly-rationale{
+  margin-top:10px; padding:8px 10px;
+  background:var(--surface); border-left:2px solid var(--plasma);
+  font-size:10px; color:var(--text); line-height:1.5;
+  font-style:italic;
+}
+.nightly-clamped{
+  margin-top:8px; padding:6px 10px; border-radius:2px;
+  background:rgba(255,170,51,0.1); border:1px solid var(--amber);
+  color:var(--amber2); font-size:9px;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo-group" style="display:flex;align-items:center;gap:16px;">
+      <a href="/" class="logo">POLY//MATRIX</a>
+      <nav class="crumbs" style="display:flex;gap:14px;align-items:center;">
+        <a href="/prediction-dashboard">SIGNALS</a>
+        <a href="/algo">ALGO</a>
+        <a href="/picks">CLAUDE</a>
+        <a href="/hft">HFT LAB</a>
+        <a href="/btc-hft">BTC ML</a>
+        <a href="/eth-hft">ETH ML</a>
+        <a href="/btc-hermes" style="color:var(--plasma);text-shadow:0 0 8px var(--glow-c);">BTC HERMES</a>
+        <a href="/profile">PROFILE</a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge" id="topbar-badge-text">PAPER ONLY</span>
+      <span class="topbar-clock" id="topbar-clock">--:--</span>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="section-title">TRADE SETTINGS</div>
+      <div class="settings-section">
+        <div class="mode-toggle-row">
+          <span class="mode-label">MODE</span>
+          <div class="toggle-wrap">
+            <button class="toggle-btn active-paper" id="btn-paper" onclick="setMode('paper')">PAPER</button>
+            <button class="toggle-btn" id="btn-live" onclick="setMode('live')">LIVE</button>
+          </div>
+        </div>
+        <div class="mode-toggle-row">
+          <span class="mode-label" title="When ON: circuit-breaker bypassed.">PROT.OVRD</span>
+          <div class="toggle-wrap">
+            <button class="toggle-btn" id="btn-prot-off" onclick="setProtOverride(false)">OFF</button>
+            <button class="toggle-btn" id="btn-prot-on" onclick="setProtOverride(true)" style="border-color:#f55;color:#f55;">ON</button>
+          </div>
+        </div>
+        <div class="mode-toggle-row">
+          <span class="mode-label" title="OFF (default): no resting SL, trades run to market close.">TP/SL</span>
+          <div class="toggle-wrap">
+            <button class="toggle-btn active-paper" id="btn-tpsl-off" onclick="setTpSl(false)">OFF</button>
+            <button class="toggle-btn" id="btn-tpsl-on" onclick="setTpSl(true)">ON</button>
+          </div>
+        </div>
+        <div class="stake-row">
+          <span class="stake-lbl">STAKE $</span>
+          <input type="number" class="stake-input" id="stake-input" value="5" min="1" max="500" step="0.5" onblur="saveStake()">
+        </div>
+      </div>
+
+      <div class="section-title">PERFORMANCE</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="lbl">TRADES</div>
+          <div class="val" id="stat-trades">--</div>
+          <div class="sub" id="stat-trades-sub">--/-- resolved</div>
+        </div>
+        <div class="stat-card">
+          <div class="lbl">WIN RATE</div>
+          <div class="val" id="stat-wr">--%</div>
+          <div class="sub" id="stat-wr-sub">W/L --</div>
+        </div>
+        <div class="stat-card" style="grid-column:span 2;">
+          <div class="lbl">PAPER PnL</div>
+          <div class="val" id="stat-pnl">$0.00</div>
+          <div class="sub">cumulative paper</div>
+        </div>
+      </div>
+
+      <div class="section-title">HERMES PARAMS</div>
+      <div class="settings-section">
+        <div style="font-size:9px;color:var(--bio);letter-spacing:0.1em;margin-bottom:4px;">STRADDLE (ACTIVE)</div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text2);">SELL_THRESH</span><span id="param-sell-thresh" style="color:var(--bio);">--</span>
+        </div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text2);">PRICE_BAL_MAX</span><span id="param-price-bal" style="color:var(--bio);">--</span>
+        </div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text2);">CUT_LOSS</span><span id="param-cut-loss" style="color:var(--bio);">--</span>
+        </div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text2);">RE_ENTRY</span><span id="param-re-entry" style="color:var(--bio);">--</span>
+        </div>
+        <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;margin:6px 0 4px;padding-top:6px;border-top:1px dashed var(--border);">VESTIGIAL</div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text3);">MIN_PROB</span><span id="param-min-prob" style="color:var(--text2);">--</span>
+        </div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text3);">MIN_EDGE</span><span id="param-min-edge" style="color:var(--text2);">--</span>
+        </div>
+        <div class="row" style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;">
+          <span style="color:var(--text3);">KELLY_FRAC</span><span id="param-kelly" style="color:var(--text2);">--</span>
+        </div>
+        <div style="margin-top:6px; padding-top:6px; border-top:1px dashed var(--border); font-size:9px; color:var(--text3); font-style:italic;">
+          Tuned nightly by Hermes at 04:17 UTC
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+      <div class="page-hdr">
+        <h1>BTC HERMES <span class="page-mode-badge" id="page-mode-badge">PAPER TRADING</span></h1>
+      </div>
+      <div class="subhdr">
+        5-minute Markov persistence trader · Hermes nightly self-learn ·
+        bets p ≥ MIN_PROB AND (p − q) ≥ MIN_EDGE
+      </div>
+
+      <div id="banner-area"></div>
+
+      <div class="panel-grid">
+        <!-- MARKOV STATE -->
+        <div class="panel">
+          <h3>◆ MARKOV STATE · 5M</h3>
+          <div class="markov-state-box">
+            <div class="state-pill UNKNOWN" id="state-pill">?</div>
+            <div class="state-meta">
+              <div class="p-line">PERSISTENCE → <span id="markov-p">--</span></div>
+              <div class="n-line" id="markov-n">samples=-- · refit=--</div>
+            </div>
+          </div>
+          <div class="row"><span class="k">P(UP → UP)</span><span class="v" id="markov-p-uu">--</span></div>
+          <div class="row"><span class="k">P(DOWN → DOWN)</span><span class="v" id="markov-p-dd">--</span></div>
+          <div class="row"><span class="k">WINDOW (days)</span><span class="v" id="markov-window">--</span></div>
+
+          <h3 style="margin-top:14px;">◇ LAST SCAN</h3>
+          <div class="row"><span class="k">STATE</span><span class="v" id="sig-dir">--</span></div>
+          <div class="row"><span class="k">p (model)</span><span class="v" id="sig-p">--</span></div>
+          <div class="row"><span class="k">q (market)</span><span class="v" id="sig-q">--</span></div>
+          <div class="row"><span class="k">EDGE (p−q)</span><span class="v" id="sig-edge">--</span></div>
+          <div class="row"><span class="k">SECS LEFT</span><span class="v" id="sig-secs">--</span></div>
+          <div class="row"><span class="k">SLUG</span><span class="v" id="sig-slug" style="font-size:9px;color:var(--text3);max-width:200px;overflow:hidden;text-overflow:ellipsis;">--</span></div>
+          <div class="row" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);">
+            <span class="k">WOULD ENTER?</span><span class="v" id="sig-would">--</span>
+          </div>
+          <div id="sig-reason" style="font-size:9px;color:var(--text2);font-style:italic;margin-top:4px;padding:4px 8px;background:rgba(0,229,255,0.04);border-left:2px solid var(--text3);display:none;"></div>
+          <div style="margin-top:10px;font-size:9px;color:var(--text3);text-align:right;">
+            <span id="scan-liveness">scans=-- · last=--s ago</span>
+          </div>
+        </div>
+
+        <!-- HERMES NIGHTLY -->
+        <div class="panel">
+          <h3>✦ HERMES NIGHTLY</h3>
+          <div class="row"><span class="k">STATUS</span><span class="v" id="nightly-status" style="color:var(--text3);">--</span></div>
+          <div class="row"><span class="k">LAST RUN</span><span class="v" id="nightly-last">--</span></div>
+          <div class="row"><span class="k">NEXT (sched)</span><span class="v" style="color:var(--text2);">04:17 UTC daily</span></div>
+          <hr style="border:0;border-top:1px dashed var(--border);margin:8px 0;">
+          <div class="row"><span class="k">PROPOSED MIN_PROB</span><span class="v" id="prop-min-prob">--</span></div>
+          <div class="row"><span class="k">PROPOSED MIN_EDGE</span><span class="v" id="prop-min-edge">--</span></div>
+          <div class="row"><span class="k">PROPOSED KELLY</span><span class="v" id="prop-kelly">--</span></div>
+          <div class="nightly-rationale" id="nightly-rationale" style="display:none;"></div>
+          <div class="nightly-clamped" id="nightly-clamped" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- TRADES -->
+      <div class="trades-section">
+        <h3>▣ RECENT TRADES (straddle pair sides)</h3>
+        <table class="trades-table">
+          <thead>
+            <tr>
+              <th>TIME</th>
+              <th>DIR</th>
+              <th>ENTRY</th>
+              <th>EXIT</th>
+              <th>EXIT REASON</th>
+              <th>STAKE</th>
+              <th>OUTCOME</th>
+              <th>PnL</th>
+              <th>PAIR</th>
+              <th>SLUG</th>
+            </tr>
+          </thead>
+          <tbody id="trades-tbody">
+            <tr><td colspan="10" style="text-align:center; color:var(--text3); padding:20px;">No trades yet — waiting for first 5m straddle entry.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── settings ─────────────────────────────────────────────────────────────────
+async function loadSettings(){
+  try{
+    const r = await fetch('/api/btc-hermes-settings');
+    if(!r.ok) return;
+    const d = await r.json();
+    applyMode(d.live_mode);
+    applyTpSl(d.tp_sl_enabled);
+    applyProt(d.protection_override);
+    const inp = document.getElementById('stake-input');
+    if(inp && document.activeElement !== inp) inp.value = (d.stake || 5).toFixed(2);
+    document.getElementById('param-min-prob').textContent = (d.min_prob ?? 0).toFixed(3);
+    document.getElementById('param-min-edge').textContent = (d.min_edge ?? 0).toFixed(3);
+    document.getElementById('param-kelly').textContent = (d.kelly_fraction ?? 0).toFixed(3);
+    document.getElementById('param-sell-thresh').textContent = '+' + ((d.sell_threshold ?? 0.05) * 100).toFixed(1) + '%';
+    document.getElementById('param-price-bal').textContent = '±' + ((d.price_balance_max_dev ?? 0.20) * 100).toFixed(0) + '%';
+    document.getElementById('param-cut-loss').textContent = '-' + ((d.cut_loss_threshold ?? 0.30) * 100).toFixed(0) + '%';
+    document.getElementById('param-re-entry').textContent = '-' + ((d.re_entry_threshold ?? 0.05) * 100).toFixed(1) + '%';
+  } catch(e){ console.error('loadSettings', e); }
+}
+function applyMode(live){
+  document.getElementById('btn-paper').className = 'toggle-btn' + (live ? '' : ' active-paper');
+  document.getElementById('btn-live').className  = 'toggle-btn' + (live ? ' active-live' : '');
+  const badge = document.getElementById('page-mode-badge');
+  const top   = document.getElementById('topbar-badge-text');
+  if(live){
+    badge.textContent = 'LIVE TRADING';
+    badge.style.borderColor = 'var(--bio)';
+    badge.style.background = 'rgba(0,255,136,0.1)';
+    badge.style.color = 'var(--bio)';
+    top.textContent = 'LIVE TRADING';
+  } else {
+    badge.textContent = 'PAPER TRADING';
+    badge.style.borderColor = 'var(--amber)';
+    badge.style.background = 'rgba(255,170,51,0.1)';
+    badge.style.color = 'var(--amber2)';
+    top.textContent = 'PAPER ONLY';
+  }
+}
+function applyTpSl(on){
+  document.getElementById('btn-tpsl-off').className = 'toggle-btn' + (on ? '' : ' active-paper');
+  document.getElementById('btn-tpsl-on').className  = 'toggle-btn' + (on ? ' active-live' : '');
+}
+function applyProt(on){
+  document.getElementById('btn-prot-off').className = 'toggle-btn' + (on ? '' : ' active-paper');
+  document.getElementById('btn-prot-on').className  = 'toggle-btn' + (on ? ' active-live' : '');
+}
+function setMode(m){
+  fetch('/api/btc-hermes-settings', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ live_mode: m === 'live' })
+  }).then(r => r.json()).then(d => { if(!d.error) applyMode(m === 'live'); });
+}
+function setTpSl(on){
+  fetch('/api/btc-hermes-settings', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tp_sl_enabled: !!on })
+  }).then(r => r.json()).then(d => { if(!d.error) applyTpSl(!!on); });
+}
+function setProtOverride(on){
+  fetch('/api/btc-hermes-settings', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ protection_override: !!on })
+  }).then(r => r.json()).then(d => { if(!d.error) applyProt(!!on); });
+}
+function saveStake(){
+  const s = parseFloat(document.getElementById('stake-input').value);
+  if(isNaN(s) || s < 1 || s > 500) return;
+  fetch('/api/btc-hermes-settings', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ stake: s })
+  }).catch(() => {});
+}
+
+// ── state + last-prediction + nightly ────────────────────────────────────────
+async function loadState(){
+  try{
+    const r = await fetch('/api/btc-hermes-state');
+    if(!r.ok) return;
+    const s = await r.json();
+    // Markov
+    const mk = s.markov || {};
+    const n  = mk.n_samples || 0;
+    document.getElementById('markov-p-uu').textContent = (mk.p_uu ?? 0).toFixed(4);
+    document.getElementById('markov-p-dd').textContent = (mk.p_dd ?? 0).toFixed(4);
+    document.getElementById('markov-window').textContent = (mk.window_days ?? '--') + 'd';
+    const refit = mk.last_refit_ts ? new Date(mk.last_refit_ts).toLocaleString() : 'never';
+    document.getElementById('markov-n').textContent = `samples=${n} · refit=${refit}`;
+    // Last prediction
+    const lp = s.last_prediction || {};
+    const pill = document.getElementById('state-pill');
+    if(lp.state === 'UP' || lp.state === 'DOWN'){
+      pill.textContent = lp.state === 'UP' ? '▲' : '▼';
+      pill.className = 'state-pill ' + lp.state;
+      document.getElementById('markov-p').textContent = (lp.p ?? 0).toFixed(3) +
+        ' (' + (lp.state === 'UP' ? 'UP→UP' : 'DOWN→DOWN') + ')';
+    } else {
+      pill.textContent = '?';
+      pill.className = 'state-pill UNKNOWN';
+      document.getElementById('markov-p').textContent = '--';
+    }
+    document.getElementById('sig-dir').textContent  = lp.state || '--';
+    document.getElementById('sig-dir').className    = 'v dir-' + (lp.state || '');
+    document.getElementById('sig-p').textContent    = lp.p != null ? lp.p.toFixed(3) : '--';
+    document.getElementById('sig-q').textContent    = lp.q != null ? lp.q.toFixed(3) : '--';
+    const edgeEl = document.getElementById('sig-edge');
+    if (lp.edge != null) {
+      edgeEl.textContent = (lp.edge >= 0 ? '+' : '') + lp.edge.toFixed(3);
+      edgeEl.style.color = lp.edge >= 0.05 ? 'var(--bio)' : (lp.edge > 0 ? 'var(--amber)' : 'var(--hot)');
+    } else { edgeEl.textContent = '--'; edgeEl.style.color = 'var(--text3)'; }
+    document.getElementById('sig-secs').textContent = lp.secs_left != null ? lp.secs_left.toFixed(0) + 's' : '--';
+    document.getElementById('sig-slug').textContent = lp.slug || '--';
+    // Would-enter indicator + reason
+    const wouldEl  = document.getElementById('sig-would');
+    const reasonEl = document.getElementById('sig-reason');
+    if (lp.would_enter === true) {
+      wouldEl.textContent = 'YES'; wouldEl.style.color = 'var(--bio)';
+      reasonEl.style.display = 'none';
+    } else if (lp.would_enter === false) {
+      wouldEl.textContent = 'NO'; wouldEl.style.color = 'var(--hot)';
+      if (lp.reason) { reasonEl.textContent = '— ' + lp.reason; reasonEl.style.display = 'block'; }
+      else { reasonEl.style.display = 'none'; }
+    } else {
+      wouldEl.textContent = '--'; wouldEl.style.color = 'var(--text3)';
+      reasonEl.style.display = 'none';
+    }
+    // Scan liveness
+    const liveEl = document.getElementById('scan-liveness');
+    const ageS   = s.last_scan_age_s;
+    const scanN  = s.scan_count ?? 0;
+    if (ageS != null) {
+      const color = ageS < 30 ? 'var(--bio)' : (ageS < 120 ? 'var(--amber)' : 'var(--hot)');
+      liveEl.innerHTML = `<span style="color:${color};">●</span> scans=${scanN} · last=${ageS.toFixed(0)}s ago`;
+    } else {
+      liveEl.textContent = `scans=${scanN} · last=never`;
+    }
+    // Stats
+    document.getElementById('stat-trades').textContent = s.trades_total || 0;
+    document.getElementById('stat-trades-sub').textContent = `${s.resolved || 0}/${s.trades_total || 0} resolved`;
+    document.getElementById('stat-wr').textContent = (s.win_rate ?? 0).toFixed(1) + '%';
+    document.getElementById('stat-wr-sub').textContent = `${s.wins || 0}W / ${s.losses || 0}L`;
+    const pnl = s.paper_pnl_total || 0;
+    const pnlEl = document.getElementById('stat-pnl');
+    pnlEl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+    pnlEl.className = 'val ' + (pnl >= 0 ? 'bio' : 'hot');
+    // Hermes nightly
+    const ln = s.last_nightly || {};
+    const statusEl = document.getElementById('nightly-status');
+    statusEl.textContent = ln.status || 'never run';
+    statusEl.style.color = ln.status === 'ok' ? 'var(--bio)'
+                           : (ln.status && ln.status.includes('error') ? 'var(--hot)' : 'var(--text2)');
+    document.getElementById('nightly-last').textContent =
+      ln.ts ? new Date(ln.ts).toLocaleString() : '--';
+    const fp = ln.final || ln.proposed || {};
+    document.getElementById('prop-min-prob').textContent = fp.min_prob !== undefined ? fp.min_prob.toFixed(3) : '--';
+    document.getElementById('prop-min-edge').textContent = fp.min_edge !== undefined ? fp.min_edge.toFixed(3) : '--';
+    document.getElementById('prop-kelly').textContent    = fp.kelly_fraction !== undefined ? fp.kelly_fraction.toFixed(3) : '--';
+    const ratEl = document.getElementById('nightly-rationale');
+    if(ln.rationale || (ln.proposed && ln.proposed.rationale)){
+      ratEl.textContent = '"' + (ln.rationale || ln.proposed.rationale) + '"';
+      ratEl.style.display = 'block';
+    } else { ratEl.style.display = 'none'; }
+    const clamped = ln.clamped || [];
+    const clampEl = document.getElementById('nightly-clamped');
+    if(clamped.length > 0){
+      clampEl.innerHTML = '⚠ CLAMPED: ' + clamped.join(' · ');
+      clampEl.style.display = 'block';
+    } else { clampEl.style.display = 'none'; }
+    // Banner for matrix-empty state
+    const bArea = document.getElementById('banner-area');
+    if(n < 200){
+      bArea.innerHTML = '<div class="banner">⚠ Matrix has ' + n + ' samples — needs ≥200 before any trade fires. Phase 3 nightly runs at 04:17 UTC daily.</div>';
+    } else if(!ln.ts){
+      bArea.innerHTML = '<div class="banner">⚠ Awaiting first Hermes nightly run — params use defaults until then.</div>';
+    } else { bArea.innerHTML = ''; }
+  } catch(e){ console.error('loadState', e); }
+}
+
+// ── trades ──────────────────────────────────────────────────────────────────
+async function loadTrades(){
+  try{
+    const r = await fetch('/api/btc-hermes-trades');
+    if(!r.ok) return;
+    const trades = await r.json();
+    const tbody = document.getElementById('trades-tbody');
+    if(!trades || trades.length === 0){
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text3); padding:20px;">No trades yet — waiting for matrix + edge.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = trades.slice(0, 50).map(t => {
+      const ts = t.logged_at ? new Date(t.logged_at).toLocaleTimeString() : '--';
+      // Outcome: still open = PENDING, sold early but market unresolved = SOLD, market resolved = WIN/LOSS/PUSH
+      let outcome;
+      if (t.resolved) outcome = t.outcome || 'PUSH';
+      else if (t.exit_price) outcome = 'SOLD';
+      else outcome = 'PENDING';
+      const pnl = t.paper_pnl;
+      const pnlCls = pnl == null ? '' : (pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
+      const pnlStr = pnl == null ? '--' : ((pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2));
+      const slug = (t.market_slug || '').replace('btc-updown-5m-', '5m-');
+      const entry = t.entry_price != null ? '$' + t.entry_price.toFixed(3) : '--';
+      const exit  = t.exit_price  != null ? '$' + t.exit_price.toFixed(3)  : '--';
+      // Exit reason badge: PROFIT (+), CUT, HELD, RE
+      let reason = '--';
+      let reasonClr = 'var(--text3)';
+      if (t.re_entry) { reason = 're-buy #' + (t.re_entry_n || '?'); reasonClr = 'var(--violet)'; }
+      else if (t.exit_reason) {
+        if (t.exit_reason.startsWith('+')) { reason = '+' + t.exit_reason.match(/[\d.]+pct/)?.[0]; reasonClr = 'var(--bio)'; }
+        else if (t.exit_reason.includes('CUT')) { reason = 'CUT ' + (t.exit_reason.match(/-\d+pct/)?.[0] || ''); reasonClr = 'var(--hot)'; }
+        else if (t.exit_reason.includes('held')) { reason = 'HELD'; reasonClr = 'var(--amber)'; }
+      }
+      const pairTag = (t.pair_id || '').slice(0, 6) || '--';
+      return `<tr>
+        <td>${ts}</td>
+        <td class="dir-${t.direction}">${t.direction || t.side || '--'}</td>
+        <td>${entry}</td>
+        <td>${exit}</td>
+        <td style="color:${reasonClr};font-size:9px;">${reason}</td>
+        <td>$${(t.stake ?? 0).toFixed(2)}</td>
+        <td class="out-${outcome}">${outcome}</td>
+        <td class="${pnlCls}">${pnlStr}</td>
+        <td style="color:var(--text3);font-size:9px;font-family:monospace;">${pairTag}</td>
+        <td style="color:var(--text3);font-size:9px;">${slug}</td>
+      </tr>`;
+    }).join('');
+  } catch(e){ console.error('loadTrades', e); }
+}
+
+// ── clock + poll ────────────────────────────────────────────────────────────
+function tickClock(){
+  const d = new Date();
+  document.getElementById('topbar-clock').textContent =
+    d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}) + ' LOCAL';
+}
+setInterval(tickClock, 1000); tickClock();
+
+async function pollAll(){ await Promise.all([loadSettings(), loadState(), loadTrades()]); }
+pollAll();
+setInterval(pollAll, 3000);
+</script>
+</body>
+</html>

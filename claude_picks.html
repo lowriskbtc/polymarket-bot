@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ff6600">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>POLY//TERMINAL // CLAUDE PICKS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap');
+:root{
+  --bg:#0a0a08;--bg2:#0f0f0c;--bg3:#141410;--bg4:#1a1a16;
+  --border:#2a2a22;--border2:#3a3a2e;
+  --orange:#ff6600;--orange-dim:rgba(255,102,0,0.15);
+  --green:#00c87a;--green-dim:rgba(0,200,122,0.12);
+  --red:#ff3b3b;--red-dim:rgba(255,59,59,0.12);
+  --blue:#3b8ee0;--blue-dim:rgba(59,142,224,0.12);
+  --yellow:#f5c518;--yellow-dim:rgba(245,197,24,0.10);
+  --purple:#a855f7;--purple-dim:rgba(168,85,247,0.12);
+  --cyan:#22d3ee;
+  --text:#e8e4d0;--text2:#a09880;--text3:#605848;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh;overflow-x:hidden;font-size:13px;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:38px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:0.12em;color:var(--orange);text-decoration:none;}
+.nav-links{display:flex;gap:0;border-left:1px solid var(--border);}
+.nav-links a{padding:0 14px;height:38px;display:flex;align-items:center;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text2);text-decoration:none;border-right:1px solid var(--border);transition:all .15s;}
+.nav-links a:hover{background:var(--bg3);color:var(--text);}
+.nav-links a.active{background:var(--purple-dim);color:var(--purple);border-bottom:2px solid var(--purple);}
+
+.main{display:grid;grid-template-columns:340px 1fr;gap:0;height:calc(100vh - 38px);}
+
+/* BRAIN PANEL */
+.brain-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);overflow:hidden;}
+.brain-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.brain-title{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--purple);display:flex;align-items:center;gap:8px;}
+.brain-subtitle{font-size:9px;color:var(--text3);margin-top:3px;}
+
+.pulse-ring{width:10px;height:10px;border-radius:50%;background:var(--purple);position:relative;flex-shrink:0;}
+.pulse-ring::before,.pulse-ring::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid var(--purple);}
+.pulse-ring.active::before{animation:p1 1.4s infinite;}
+.pulse-ring.active::after{animation:p2 1.4s 0.35s infinite;}
+@keyframes p1{0%{width:10px;height:10px;opacity:0.8}100%{width:28px;height:28px;opacity:0}}
+@keyframes p2{0%{width:10px;height:10px;opacity:0.5}100%{width:40px;height:40px;opacity:0}}
+
+.matrix-section{padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.matrix-label{font-size:9px;color:var(--text3);letter-spacing:0.08em;margin-bottom:8px;font-weight:700;}
+.matrix-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.matrix-col{display:flex;flex-direction:column;gap:3px;align-items:center;}
+.matrix-sym{font-size:7px;color:var(--text3);font-weight:700;letter-spacing:0.04em;}
+.matrix-cell{width:100%;height:22px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;transition:all .3s;cursor:default;}
+.matrix-cell.idle{color:var(--text3);}
+.matrix-cell.scanning{border-color:var(--purple);background:var(--purple-dim);animation:sp 0.8s infinite;}
+.matrix-cell.found{border-color:var(--green);background:var(--green-dim);}
+.matrix-cell.skip{color:var(--text3);}
+.matrix-cell.error{border-color:var(--red);background:var(--red-dim);color:var(--red);}
+.dir-up{color:var(--green);}
+.dir-down{color:var(--red);}
+@keyframes sp{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.stream-section{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.stream-label{font-size:9px;color:var(--text3);letter-spacing:0.08em;font-weight:700;padding:10px 16px 6px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.stream-log{flex:1;overflow-y:auto;padding:8px 16px;font-size:10px;line-height:1.75;}
+.stream-log::-webkit-scrollbar{width:3px;}
+.stream-log::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.thought{display:flex;gap:8px;}
+.thought-ts{color:var(--text3);flex-shrink:0;font-size:9px;padding-top:1px;}
+.thought-msg{word-break:break-word;}
+.thought.info .thought-msg{color:var(--text2);}
+.thought.check .thought-msg{color:var(--cyan);}
+.thought.found .thought-msg{color:var(--green);font-weight:600;}
+.thought.skip .thought-msg{color:var(--text3);}
+.thought.warn .thought-msg{color:var(--yellow);}
+.thought.info.hdr .thought-msg{color:var(--purple);font-weight:700;}
+
+/* PICKS PANEL */
+.picks-panel{overflow-y:auto;padding:20px 24px;}
+.picks-panel::-webkit-scrollbar{width:4px;}
+.picks-panel::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.page-header{margin-bottom:14px;}
+.page-header h1{font-size:15px;font-weight:700;letter-spacing:0.1em;color:var(--purple);}
+.page-header p{margin-top:4px;font-size:10px;color:var(--text2);line-height:1.6;}
+
+.controls{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.scan-btn{background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple);padding:5px 14px;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0.08em;cursor:pointer;transition:all .15s;}
+.scan-btn:hover{background:var(--purple);color:#000;}
+.scan-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.auto-label{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);}
+.auto-label input{accent-color:var(--purple);}
+.stat{font-size:10px;color:var(--text2);}
+.stat-dim{font-size:10px;color:var(--text3);}
+
+.section-label{font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--text3);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.picks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;margin-bottom:4px;}
+
+.pick-card{background:var(--bg2);border:1px solid var(--border);padding:16px;}
+.pick-card.extreme{border-left:3px solid var(--red);}
+.pick-card.high{border-left:3px solid var(--orange);}
+.pick-card.medium{border-left:3px solid var(--yellow);}
+
+.pick-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.pick-title{display:flex;align-items:center;gap:6px;}
+.pick-symbol{font-size:17px;font-weight:700;}
+.pick-tf{font-size:9px;color:var(--text3);padding:2px 4px;border:1px solid var(--border2);}
+.dir-chip{font-size:11px;font-weight:700;padding:2px 8px;}
+.dir-chip.up{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,200,122,0.3);}
+.dir-chip.down{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,59,59,0.3);}
+
+.badge{display:inline-block;padding:2px 6px;font-size:8px;font-weight:700;letter-spacing:0.07em;}
+.badge-EXTREME{background:rgba(255,59,59,0.2);color:var(--red);border:1px solid rgba(255,59,59,0.3);}
+.badge-STRONG{background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid rgba(0,212,255,0.3);}
+.badge-HIGH{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,102,0,0.3);}
+.badge-MEDIUM{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(245,197,24,0.3);}
+.type-badge{display:inline-block;padding:2px 6px;font-size:8px;font-weight:700;}
+.type-TIME-LOCK{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,59,59,0.25);}
+.type-MOMENTUM{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,142,224,0.25);}
+.type-MISPRICED{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,200,122,0.25);}
+.type-MANIP{background:rgba(245,197,24,0.12);color:var(--yellow);border:1px solid rgba(245,197,24,0.30);}
+.pick-card.manip-card{border-color:rgba(245,197,24,0.35);box-shadow:0 0 12px rgba(245,197,24,0.06);}
+.manip-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px;padding:6px 8px;background:rgba(245,197,24,0.05);border:1px solid rgba(245,197,24,0.15);border-radius:2px;}
+.manip-chip{font-size:9px;font-weight:700;letter-spacing:0.08em;padding:2px 6px;border-radius:2px;}
+.manip-chip.wick-bull{background:rgba(0,200,122,0.15);color:var(--green);}
+.manip-chip.wick-bear{background:rgba(255,59,59,0.15);color:var(--red);}
+.manip-chip.gap{background:rgba(245,197,24,0.15);color:var(--yellow);}
+.manip-chip.type{background:rgba(168,85,247,0.15);color:var(--purple);}
+.type-NEAR-CLOSE{background:rgba(255,165,0,0.15);color:#ffa500;border:1px solid rgba(255,165,0,0.3);}
+.type-VOL-SURGE{background:rgba(180,80,255,0.15);color:#b450ff;border:1px solid rgba(180,80,255,0.3);}
+.pick-title-full{font-size:10px;color:var(--text2);margin-top:3px;line-height:1.3;letter-spacing:0.02em;}
+
+/* CONVICTION SLIDER */
+.conviction-slider-wrap{padding:10px 0;border-bottom:1px solid var(--border);}
+.conviction-slider-title{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);margin-bottom:10px;}
+.slider-track-row{display:flex;align-items:center;gap:12px;}
+.slider-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;font-weight:700;letter-spacing:.06em;}
+.slider-label{flex:1;text-align:center;}
+.slider-label.active-label{color:var(--orange);}
+input[type=range].conviction-range{
+  -webkit-appearance:none;appearance:none;width:100%;height:4px;
+  background:var(--border2);border-radius:2px;outline:none;cursor:pointer;flex:1;
+}
+input[type=range].conviction-range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;
+  border-radius:50%;background:var(--orange);border:2px solid var(--bg);cursor:pointer;
+}
+input[type=range].conviction-range::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:var(--orange);border:2px solid var(--bg);cursor:pointer;
+}
+.conviction-badge{font-size:11px;font-weight:700;min-width:70px;text-align:center;padding:3px 8px;border:1px solid;}
+.conviction-badge.MEDIUM{color:var(--yellow);border-color:rgba(245,197,24,.4);background:var(--yellow-dim);}
+.conviction-badge.HIGH{color:var(--orange);border-color:rgba(255,102,0,.4);background:var(--orange-dim);}
+.conviction-badge.STRONG{color:var(--cyan);border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.12);}
+.conviction-badge.EXTREME{color:var(--red);border-color:rgba(255,59,59,.4);background:var(--red-dim);}
+
+/* STRATEGY MODE TOGGLES */
+.mode-panel{margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);}
+.mode-panel-title{display:flex;align-items:center;justify-content:space-between;font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text3);padding:10px 14px;cursor:pointer;user-select:none;}
+.mode-panel-title:hover{color:var(--text);}
+.mode-panel-title .chevron{transition:transform .2s;font-style:normal;}
+.mode-panel-body{padding:0 14px 12px;display:none;}
+.mode-panel-body.open{display:block;}
+.mode-rows{display:flex;flex-direction:column;gap:7px;}
+.mode-row{display:flex;align-items:center;justify-content:space-between;}
+.mode-label{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;}
+.mode-status{font-size:9px;color:var(--text3);margin-left:4px;}
+.mode-status.real{color:var(--green);}
+/* pill toggle */
+.pill-wrap{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text3);}
+.pill{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0;}
+.pill input{opacity:0;width:0;height:0;}
+.pill-track{position:absolute;inset:0;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;transition:background .2s,border-color .2s;}
+.pill input:checked ~ .pill-track{background:rgba(0,200,122,0.2);border-color:var(--green);}
+.pill-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;background:var(--text3);border-radius:50%;transition:transform .2s,background .2s;}
+.pill input:checked ~ .pill-thumb{transform:translateX(18px);background:var(--green);}
+
+/* PLAY TYPE FILTER BAR */
+.type-filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.type-filter-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);margin-right:2px;white-space:nowrap;}
+.tfbtn{cursor:pointer;font-family:inherit;font-size:9px;font-weight:700;letter-spacing:.06em;
+  padding:4px 10px;transition:all .15s;user-select:none;border:1px solid;background:none;}
+.tfbtn.on-TIME-LOCK{background:var(--red-dim);color:var(--red);border-color:rgba(255,59,59,.45);}
+.tfbtn.on-MANIP{background:rgba(245,197,24,.12);color:var(--yellow);border-color:rgba(245,197,24,.45);}
+.tfbtn.on-MOMENTUM{background:var(--blue-dim);color:var(--blue);border-color:rgba(59,142,224,.45);}
+.tfbtn.on-MISPRICED{background:var(--green-dim);color:var(--green);border-color:rgba(0,200,122,.45);}
+.tfbtn.on-NEAR-CLOSE{background:rgba(255,165,0,.12);color:#ffa500;border-color:rgba(255,165,0,.45);}
+.tfbtn.on-VOL-SURGE{background:rgba(180,80,255,.12);color:#b450ff;border-color:rgba(180,80,255,.45);}
+.tfbtn.off{background:var(--bg3);color:var(--text3);border-color:var(--border);opacity:.45;}
+.tfbtn-meta{cursor:pointer;background:none;border:none;font-family:inherit;font-size:9px;
+  font-weight:700;letter-spacing:.06em;color:var(--text3);padding:4px 7px;transition:color .15s;}
+.tfbtn-meta:hover{color:var(--text);}
+
+/* PAPER LOG */
+.paper-log-section{margin-top:32px;border-top:1px solid var(--border);padding-top:20px;}
+.paper-log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.paper-log-title{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--text2);}
+.paper-summary-line{font-size:10px;color:var(--text3);}
+/* Stats tile row — clean grid, fits 7 tiles */
+.picks-stats-row{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:16px;}
+@media (max-width:1100px){.picks-stats-row{grid-template-columns:repeat(4,1fr);}}
+@media (max-width:680px){.picks-stats-row{grid-template-columns:repeat(2,1fr);}}
+.pstat{background:var(--bg2);border:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.pstat-label{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--text3);}
+.pstat-val{font-size:18px;font-weight:700;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums;}
+.pstat-val.val-green{color:var(--green);}
+.pstat-val.val-red{color:var(--red);}
+.pstat-val.val-text2{color:var(--text2);}
+.pstat-sub{font-size:8px;color:var(--text3);letter-spacing:.04em;}
+.paper-table{width:100%;border-collapse:collapse;font-size:10px;}
+.paper-table th{text-align:left;padding:4px 8px;font-size:9px;font-weight:700;letter-spacing:0.08em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;}
+.paper-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+.paper-table tr:hover td{background:var(--bg3);}
+.p-win{color:var(--green);font-weight:700;}
+.p-loss{color:var(--red);font-weight:700;}
+.p-pending{color:var(--text3);}
+.p-push{color:var(--yellow);}
+.p-dir{font-size:9px;padding:1px 5px;border-radius:2px;font-weight:700;}
+.p-dir.up{background:rgba(0,200,122,0.15);color:var(--green);}
+.p-dir.down{background:rgba(255,59,59,0.15);color:var(--red);}
+.p-dir.neutral{background:rgba(160,152,128,0.15);color:var(--text2);}
+
+.pick-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0;}
+.metric{background:var(--bg3);padding:7px 9px;}
+.metric-label{font-size:8px;color:var(--text3);letter-spacing:0.06em;margin-bottom:2px;}
+.metric-value{font-size:13px;font-weight:700;}
+.metric-value.green{color:var(--green);}
+.metric-value.orange{color:var(--orange);}
+.metric-value.blue{color:var(--blue);}
+
+.pick-reasoning{font-size:9px;color:var(--text2);line-height:1.6;margin:8px 0;padding:7px 9px;background:var(--bg3);border-left:2px solid var(--border2);}
+.pick-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.pick-footer-badges{display:flex;gap:5px;}
+.buy-btn{background:var(--green-dim);border:1px solid var(--green);color:var(--green);padding:5px 14px;font-family:inherit;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;}
+.buy-btn:hover{background:var(--green);color:#000;}
+.buy-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.countdown{font-size:10px;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums;}
+
+.empty-state{text-align:center;padding:60px 40px;color:var(--text3);}
+.empty-state .icon{font-size:28px;margin-bottom:10px;}
+.empty-state p{font-size:11px;line-height:1.7;max-width:340px;margin:0 auto;}
+.loading{text-align:center;padding:50px;color:var(--purple);}
+.loading-dots::after{content:'...';animation:dots 1.2s infinite;}
+@keyframes dots{0%,20%{content:'.'}40%,60%{content:'..'}80%,100%{content:'...'}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);padding:10px 16px;font-size:11px;z-index:10000;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--red);color:var(--red);}
+
+/* ══════════════════════════════════════════
+   MOBILE
+   ══════════════════════════════════════════ */
+@media(max-width:768px){
+  body { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+  /* topbar */
+  .topbar { padding: 0 12px; height: 48px; }
+  .nav-links { display: none; }
+  .logo { font-size: 12px; }
+
+  /* Stack brain panel on top, picks panel below */
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto;
+    min-height: calc(100vh - 48px);
+  }
+
+  /* Brain panel: compact fixed height, scrollable log */
+  .brain-panel {
+    height: 280px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .brain-header { padding: 10px 12px 8px; }
+  .brain-title { font-size: 10px; }
+
+  /* Matrix: smaller cells */
+  .matrix-section { padding: 8px 12px; }
+  .matrix-cell { height: 18px; font-size: 6px; }
+  .matrix-sym { font-size: 6px; }
+
+  /* Stream log */
+  .stream-log { font-size: 9px; padding: 6px 12px; }
+  .thought-ts { font-size: 8px; }
+
+  /* Picks panel */
+  .picks-panel { padding: 14px 12px 72px; }
+  .page-header h1 { font-size: 13px; }
+  .page-header p { font-size: 9px; }
+
+  /* Picks grid: single column */
+  .picks-grid { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Pick cards */
+  .pick-card { padding: 12px; }
+  .pick-symbol { font-size: 15px; }
+  .pick-metrics { grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .metric { padding: 6px 7px; }
+  .metric-value { font-size: 12px; }
+
+  /* Buy button: full width, bigger tap target */
+  .buy-btn { min-height: 40px; padding: 8px 16px; font-size: 11px; }
+  .pick-footer { flex-direction: column; gap: 8px; align-items: stretch; }
+  .buy-btn { width: 100%; text-align: center; }
+
+  /* Controls */
+  .controls { gap: 8px; }
+  .scan-btn { min-height: 40px; padding: 6px 16px; font-size: 11px; }
+
+  /* Play type filter bar */
+  .type-filter-bar { gap: 5px; padding: 6px 0 8px; }
+  .tfbtn { padding: 5px 8px; font-size: 8px; min-height: 32px; }
+  .type-filter-label { font-size: 8px; }
+
+  /* Paper log table: horizontal scroll */
+  .paper-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .paper-table { min-width: 500px; }
+  .paper-log-section { margin-top: 20px; padding-top: 14px; }
+}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-nav { display: none; }
+@media(max-width:768px){
+  .mobile-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    height: 56px; background: var(--bg2); border-top: 1px solid var(--border);
+    z-index: 300; padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mobile-nav a {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; text-decoration: none;
+    color: var(--text3); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav a.active { color: var(--purple); }
+  .mobile-nav a:active { background: rgba(168,85,247,0.06); }
+  .mobile-nav-icon { font-size: 18px; line-height: 1; }
+}
+</style>
+<link rel="stylesheet" href="/neuro.css">
+</head>
+<body>
+<script src="/neuro_particles.js"></script>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="logo" href="/">POLY//TERMINAL</a>
+    <nav class="nav-links">
+      <a href="/signals">SIGNALS</a>
+      <a href="/algo-display">ALGOS</a>
+      <a href="/claude-picks" class="active">CLAUDE PICKS</a>
+      <a href="/hft">HFT LAB</a>
+      <a href="/btc-hft">BTC ML</a>
+      <a href="/eth-hft">ETH ML</a>
+      <a href="/btc-hermes">BTC HERMES</a>
+      <a href="/profile">PROFILE</a>
+      <a href="/profile#predictions">PREDICTIONS</a>
+      <a href="/profile#settings">SETTINGS</a>
+    </nav>
+  </div>
+  <div style="font-size:10px;color:var(--text3)" id="clock"></div>
+</div>
+
+<div class="main">
+
+  <!-- BRAIN PANEL -->
+  <div class="brain-panel">
+    <div class="brain-header">
+      <div class="brain-title">
+        <div class="pulse-ring" id="pulseRing"></div>
+        CLAUDE BRAIN ACTIVITY
+      </div>
+      <div class="brain-subtitle">live thought stream + evaluation matrix</div>
+    </div>
+
+    <div class="matrix-section">
+      <div class="matrix-label">SYMBOL × TIMEFRAME MATRIX</div>
+      <div class="matrix-grid" id="matrixGrid"></div>
+    </div>
+
+    <div class="stream-section">
+      <div class="stream-label">THOUGHT STREAM</div>
+      <div class="stream-log" id="streamLog"></div>
+    </div>
+  </div>
+
+  <!-- PICKS PANEL -->
+  <div class="picks-panel">
+    <div class="page-header">
+      <h1>&#x25B2; CLAUDE PICKS</h1>
+      <p>
+        <strong style="color:var(--red)">TIME-LOCK</strong> — market near close, outcome clear &nbsp;·&nbsp;
+        <strong style="color:var(--blue)">MOMENTUM</strong> — 80%+ signal, cheap token &nbsp;·&nbsp;
+        <strong style="color:var(--green)">MISPRICED</strong> — candle drift vs market price
+      </p>
+    </div>
+
+    <div class="controls">
+      <button class="scan-btn" id="scanBtn" onclick="runScan()">&#x25B6; SCAN NOW</button>
+      <label class="auto-label">
+        <input type="checkbox" id="autoRefresh" checked onchange="toggleAutoRefresh()"> AUTO 30s
+      </label>
+      <span class="stat" id="pickCount"></span>
+      <span class="stat-dim" id="lastScan"></span>
+    </div>
+
+    <!-- PLAY TYPE FILTER -->
+    <div class="type-filter-bar">
+      <span class="type-filter-label">SHOW:</span>
+      <button class="tfbtn" id="tfbtn-TIME-LOCK"  onclick="togglePlayType('TIME-LOCK')">TIME-LOCK</button>
+      <button class="tfbtn" id="tfbtn-MANIP"       onclick="togglePlayType('MANIP')">MANIP</button>
+      <button class="tfbtn" id="tfbtn-MOMENTUM"    onclick="togglePlayType('MOMENTUM')">MOMENTUM</button>
+      <button class="tfbtn" id="tfbtn-MISPRICED"   onclick="togglePlayType('MISPRICED')">MISPRICED</button>
+      <button class="tfbtn" id="tfbtn-NEAR-CLOSE"  onclick="togglePlayType('NEAR-CLOSE')">NEAR-CLOSE</button>
+      <button class="tfbtn" id="tfbtn-VOL-SURGE"   onclick="togglePlayType('VOL-SURGE')">VOL-SURGE</button>
+      <button class="tfbtn-meta" onclick="setAllPlayTypes(true)">ALL</button>
+      <button class="tfbtn-meta" onclick="setAllPlayTypes(false)">NONE</button>
+    </div>
+
+    <!-- DISPLAY SETTINGS (collapsed by default) -->
+    <div class="mode-panel">
+      <div class="mode-panel-title" onclick="toggleSettingsPanel()">
+        <span>&#x2699;&#xFE0F; DISPLAY SETTINGS</span>
+        <i class="chevron" id="settingsPanelChevron">&#x25BC;</i>
+      </div>
+      <div class="mode-panel-body" id="settingsPanelBody">
+
+        <!-- CONVICTION LEVEL TOGGLES -->
+        <div class="conviction-slider-wrap" style="margin-bottom:10px">
+          <div class="conviction-slider-title">&#x1F3AF; CONVICTION LEVELS TO TRADE</div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="convLevelToggles">
+            <!-- filled by JS -->
+          </div>
+          <div style="font-size:9px;color:var(--text3);margin-top:5px" id="convLevelHint"></div>
+        </div>
+
+        <!-- PER-CONVICTION BET SLIDERS -->
+        <div style="padding:10px 0 4px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);margin-bottom:10px">&#x1F4B0; MAX BET PER CONVICTION</div>
+          <div id="convictionBetRows"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STRATEGY MODE TOGGLES -->
+    <div class="mode-panel">
+      <div class="mode-panel-title" onclick="toggleModePanel()">
+        <span>&#x26A1; STRATEGY AUTO-BUY MODES</span>
+        <i class="chevron" id="modePanelChevron">&#x25BC;</i>
+      </div>
+      <div class="mode-panel-body" id="modePanelBody">
+        <!-- Protection Override (2026-05-17): bypass circuit-breaker + auto-pause + _check_auto_disable. -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;margin-bottom:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;">
+          <span title="When ON: bot's automatic strategy-disable + auto-pause are bypassed. Your real/paper choices stay sticky." style="font-size:10px;letter-spacing:.05em;color:var(--text2);font-family:'IBM Plex Mono',monospace;">&#x1F6E1; PROTECTION OVERRIDE</span>
+          <div style="display:flex;gap:4px;">
+            <button id="btn-prot-off" onclick="setPicksProtectionOverride(false)" style="font-size:9px;font-family:'IBM Plex Mono',monospace;padding:3px 10px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);border-radius:3px;cursor:pointer;letter-spacing:.05em;">OFF</button>
+            <button id="btn-prot-on"  onclick="setPicksProtectionOverride(true)"  style="font-size:9px;font-family:'IBM Plex Mono',monospace;padding:3px 10px;background:var(--bg2);border:1px solid #f55;color:#f55;border-radius:3px;cursor:pointer;letter-spacing:.05em;">ON</button>
+          </div>
+        </div>
+        <div class="mode-rows" id="modeRows">
+          <div style="color:var(--text3);font-size:10px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAX BACKTEST RECOMMENDATIONS -->
+    <div class="mode-panel">
+      <div class="mode-panel-title" onclick="toggleMaxPanel()">
+        <span>&#x26A1; MAX BACKTEST RECOMMENDATIONS</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <button id="cp-max-btn" onclick="event.stopPropagation();runClaudePicksMax()" title="Aggregate resolved Claude Picks trades by play_type and per (play_type, symbol, direction) cells. Surface flip-to-live / flip-to-paper candidates." style="font-size:9px;font-family:'IBM Plex Mono',monospace;padding:3px 12px;background:#5a1a2a;border:1px solid #e53;color:#ff7a8c;border-radius:3px;cursor:pointer;letter-spacing:.05em;font-weight:700;">&#9889; RUN MAX</button>
+          <i class="chevron" id="maxPanelChevron">&#x25BC;</i>
+        </span>
+      </div>
+      <div class="mode-panel-body open" id="maxPanelBody">
+        <div id="cp-max-status" style="font-size:10px;color:var(--text3);margin-bottom:8px;">Click RUN MAX to analyze resolved trades.</div>
+        <div id="cp-max-results"></div>
+      </div>
+    </div>
+
+    <div id="picksContainer">
+      <div class="loading"><span class="loading-dots">Scanning markets</span></div>
+    </div>
+
+    <!-- PAPER TRADE LOG -->
+    <div class="paper-log-section">
+      <div class="paper-log-header">
+        <span class="paper-log-title">&#x1F4CB; PAPER TRADE LOG</span>
+        <span style="display:flex;align-items:center;gap:12px">
+          <span id="logRefreshTs" style="font-size:9px;color:var(--text3);font-family:'IBM Plex Mono',monospace"></span>
+          <button onclick="loadPaperLog()" style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 8px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:3px;cursor:pointer;letter-spacing:.05em">&#x21BB; REFRESH</button>
+        </span>
+      </div>
+
+      <!-- TOP STATS ROW -->
+      <div id="paperStatsRow" class="picks-stats-row">
+        <div class="pstat"><div class="pstat-label">TOTAL</div><div class="pstat-val" id="ps-total">—</div><div class="pstat-sub" id="ps-total-sub">—</div></div>
+        <div class="pstat"><div class="pstat-label">WINS</div><div class="pstat-val val-green" id="ps-wins">—</div><div class="pstat-sub" id="ps-wins-sub">—</div></div>
+        <div class="pstat"><div class="pstat-label">LOSSES</div><div class="pstat-val val-red" id="ps-losses">—</div><div class="pstat-sub" id="ps-losses-sub">—</div></div>
+        <div class="pstat"><div class="pstat-label">PENDING</div><div class="pstat-val val-text2" id="ps-pending">—</div><div class="pstat-sub">unresolved</div></div>
+        <div class="pstat"><div class="pstat-label">WIN RATE</div><div class="pstat-val" id="ps-wr">—</div><div class="pstat-sub" id="ps-wr-sub">—</div></div>
+        <div class="pstat"><div class="pstat-label">TOTAL PNL</div><div class="pstat-val" id="ps-pnl">$0.00</div><div class="pstat-sub" id="ps-pnl-sub">paper</div></div>
+        <div class="pstat"><div class="pstat-label">TODAY PNL</div><div class="pstat-val" id="ps-today-pnl">—</div><div class="pstat-sub" id="ps-today-sub">—</div></div>
+        <div class="pstat"><div class="pstat-label">VOLUME</div><div class="pstat-val val-text2" id="ps-volume">$0</div><div class="pstat-sub">staked</div></div>
+      </div>
+
+      <span id="paperSummary" style="display:none"></span>
+      <div id="paperLogTable">
+        <div style="color:var(--text3);font-size:10px;padding:8px 0">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SYMBOLS = ['BTC','ETH','SOL','XRP','DOGE','HYPE','BNB'];
+const TFS = ['5m','15m'];
+const ALL_PLAY_TYPES = ['TIME-LOCK','MANIP','MOMENTUM','MISPRICED','NEAR-CLOSE','VOL-SURGE'];
+let autoTimer = null;
+let logCursor = 0;
+const countdowns = {};
+let _lastPicks = [];
+
+// ── PLAY TYPE FILTER ─────────────────────────────────────────────────────────
+const _savedFilter = JSON.parse(localStorage.getItem('activePlayTypes') || 'null');
+let activePlayTypes = new Set(_savedFilter || ALL_PLAY_TYPES);
+
+function updatePlayTypeButtons() {
+  ALL_PLAY_TYPES.forEach(pt => {
+    const btn = document.getElementById('tfbtn-' + pt);
+    if (!btn) return;
+    const on = activePlayTypes.has(pt);
+    btn.className = 'tfbtn ' + (on ? 'on-' + pt : 'off');
+  });
+}
+
+function togglePlayType(pt) {
+  if (activePlayTypes.has(pt)) {
+    if (activePlayTypes.size === 1) return; // keep at least one
+    activePlayTypes.delete(pt);
+  } else {
+    activePlayTypes.add(pt);
+  }
+  localStorage.setItem('activePlayTypes', JSON.stringify([...activePlayTypes]));
+  updatePlayTypeButtons();
+  renderPicks(_lastPicks);
+}
+
+function setAllPlayTypes(enable) {
+  if (enable) ALL_PLAY_TYPES.forEach(pt => activePlayTypes.add(pt));
+  else {
+    ALL_PLAY_TYPES.forEach(pt => activePlayTypes.delete(pt));
+    activePlayTypes.add(ALL_PLAY_TYPES[0]); // always keep at least one
+  }
+  localStorage.setItem('activePlayTypes', JSON.stringify([...activePlayTypes]));
+  updatePlayTypeButtons();
+  renderPicks(_lastPicks);
+}
+
+updatePlayTypeButtons();
+
+// clock
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toUTCString().replace('GMT','UTC').slice(5,-4);
+}
+setInterval(updateClock, 1000); updateClock();
+
+// init matrix
+function initMatrix() {
+  const grid = document.getElementById('matrixGrid');
+  grid.innerHTML = '';
+  SYMBOLS.forEach(sym => {
+    const col = document.createElement('div');
+    col.className = 'matrix-col';
+    col.innerHTML = `<div class="matrix-sym">${sym}</div>`;
+    TFS.forEach(tf => {
+      const cell = document.createElement('div');
+      cell.className = 'matrix-cell idle';
+      cell.id = `mc_${sym}_${tf}`;
+      cell.title = `${sym}/${tf}`;
+      cell.textContent = tf;
+      col.appendChild(cell);
+    });
+    grid.appendChild(col);
+  });
+}
+initMatrix();
+
+// brain poll — runs every 1.5s to stream thoughts
+async function pollBrain() {
+  try {
+    const res = await fetch('/api/claude-brain?since=' + logCursor);
+    const data = await res.json();
+
+    // pulse ring
+    document.getElementById('pulseRing').className =
+      'pulse-ring' + (data.scanning ? ' active' : '');
+
+    // update matrix cells
+    const mat = data.matrix || {};
+    SYMBOLS.forEach(sym => {
+      TFS.forEach(tf => {
+        const cell = document.getElementById(`mc_${sym}_${tf}`);
+        if (!cell) return;
+        const info = (mat[sym] || {})[tf] || {};
+        const st = info.status || 'idle';
+        cell.className = 'matrix-cell ' + st;
+        if (st === 'found') {
+          const dir = (info.direction||'').toLowerCase();
+          const arrow = dir==='up'?'▲':dir==='down'?'▼':'★';
+          cell.innerHTML = `<span class="dir-${dir}">${arrow}</span>`;
+          cell.title = `${sym}/${tf}: ${info.direction} prob=${info.prob}% ev=+${info.ev} (${info.play})`;
+        } else if (st === 'scanning') {
+          cell.innerHTML = '⟳';
+          cell.title = `${sym}/${tf}: scanning ${info.play||''}`;
+        } else {
+          cell.textContent = tf;
+        }
+      });
+    });
+
+    // append new log entries
+    const log = document.getElementById('streamLog');
+    const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+    (data.log || []).forEach(entry => {
+      const isHdr = entry.msg.startsWith('━');
+      const div = document.createElement('div');
+      div.className = 'thought ' + entry.level + (isHdr ? ' hdr' : '');
+      div.innerHTML = `<span class="thought-ts">${entry.ts}</span><span class="thought-msg">${entry.msg}</span>`;
+      log.appendChild(div);
+    });
+    logCursor = data.total || logCursor;
+    if (atBottom || (data.log||[]).length > 0) log.scrollTop = log.scrollHeight;
+    while (log.children.length > 300) log.removeChild(log.firstChild);
+  } catch(e) { /* silent */ }
+}
+
+// scan
+async function runScan() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true; btn.textContent = '⟳ SCANNING...';
+  document.getElementById('picksContainer').innerHTML =
+    '<div class="loading"><span class="loading-dots">Scanning markets</span></div>';
+  try {
+    const res = await fetch('/api/claude-picks');
+    const data = await res.json();
+    _lastPicks = data.picks || [];
+    renderPicks(_lastPicks);
+    document.getElementById('lastScan').textContent = 'scanned ' + new Date().toLocaleTimeString();
+    document.getElementById('pickCount').textContent =
+      (data.count||0) + ' pick' + ((data.count||0)!==1?'s':'') + ' found';
+  } catch(e) {
+    document.getElementById('picksContainer').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠</div><p>Scan failed: ${e.message}</p></div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = '▶ SCAN NOW';
+  }
+}
+
+function renderPicks(picks) {
+  const c = document.getElementById('picksContainer');
+  // Apply play type filter
+  const filtered = picks.filter(p => activePlayTypes.has(p.play_type));
+  if (!filtered.length) {
+    const allEmpty = picks.length === 0;
+    c.innerHTML = `<div class="empty-state"><div class="icon">◎</div>
+      <p>${allEmpty
+        ? 'No high-confidence plays right now. Watch the brain panel for live evaluation.'
+        : 'No picks match the active filters. Toggle play types above to show more.'
+      }</p></div>`;
+    return;
+  }
+  const groups = {EXTREME:[],HIGH:[],STRONG:[],MEDIUM:[]};
+  filtered.forEach(p => (groups[p.conviction]||groups.MEDIUM).push(p));
+  let html = '';
+  for (const [level, items] of Object.entries(groups)) {
+    if (!items.length) continue;
+    html += `<div class="section-label">${level} CONVICTION (${items.length})</div><div class="picks-grid">`;
+    items.forEach(p => { html += buildCard(p); });
+    html += '</div>';
+  }
+  c.innerHTML = html;
+  filtered.filter(p=>p.secs_left!=null).forEach(p=>{
+    startCountdown((p.slug+p.direction).replace(/[^a-zA-Z0-9]/g,'_'), p.secs_left);
+  });
+}
+
+const _pickStore = {};  // key → pick object for buy handler
+
+function buildCard(p) {
+  const key = (p.slug+p.direction).replace(/[^a-zA-Z0-9]/g,'_');
+  _pickStore[key] = p;   // store for buyPick lookup
+  const dc = p.direction==='UP'?'up': p.direction==='DOWN'?'down':'neutral';
+  const cd = p.secs_left!=null?`<span class="countdown" id="cd_${key}">⏱ ${p.secs_left}s</span>`:'';
+  const vol24 = p.volume_24h ? `<span style="color:var(--dim);font-size:9px">VOL ${p.volume_24h>=1000?'$'+(p.volume_24h/1000).toFixed(0)+'k':'$'+p.volume_24h.toFixed(0)}</span>` : '';
+  const titleLine = p.title ? `<div class="pick-title-full">${escHtml(p.title)}</div>` : '';
+  const isManip = p.play_type === 'MANIP';
+
+  // Extra row for manipulation plays
+  const manipRow = isManip ? (() => {
+    const gap = p.divergence ? Math.round(p.divergence * 100) : '?';
+    const fair = p.fair_value ? Math.round(p.fair_value * 100) : '?';
+    const bulls = p.bull_rejections || 0;
+    const bears = p.bear_rejections || 0;
+    const mt = p.manip_type || 'MANIP';
+    const mom = p.momentum_pct ? p.momentum_pct + '% mom' : '';
+    return `<div class="manip-row">
+      <span class="manip-chip type">${mt}</span>
+      <span class="manip-chip gap">FAIR ${fair}¢ — GAP +${gap}¢</span>
+      ${bulls >= 3 ? `<span class="manip-chip wick-bull">▼WICK ×${bulls}</span>` : ''}
+      ${bears >= 3 ? `<span class="manip-chip wick-bear">▲WICK ×${bears}</span>` : ''}
+      ${mom ? `<span class="manip-chip gap">${mom}</span>` : ''}
+    </div>`;
+  })() : '';
+
+  return `<div class="pick-card ${p.conviction.toLowerCase()}${isManip?' manip-card':''}">
+    <div class="pick-header">
+      <div class="pick-title">
+        <span class="pick-symbol">${escHtml(p.symbol)}</span>
+        <span class="pick-tf">${escHtml(p.timeframe)}</span>
+        <span class="dir-chip ${dc}">${escHtml(p.direction)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">${cd}${vol24}<span class="badge badge-${p.conviction}">${p.conviction}</span></div>
+    </div>
+    ${titleLine}
+    ${manipRow}
+    <div class="pick-metrics">
+      <div class="metric"><div class="metric-label">PROB EST</div><div class="metric-value orange">${p.prob}%</div></div>
+      <div class="metric"><div class="metric-label">TOKEN ASK</div><div class="metric-value blue">$${p.ask}</div></div>
+      <div class="metric"><div class="metric-label">EDGE/TOKEN</div><div class="metric-value green">+$${p.ev} (${p.ev_pct}%)</div></div>
+      <div class="metric"><div class="metric-label">BET</div><div class="metric-value">$${(p.bet_amount ?? 5).toFixed(2)}</div></div>
+    </div>
+    <div class="pick-reasoning">${escHtml(p.reasoning)}</div>
+    <div class="pick-footer">
+      <div class="pick-footer-badges"><span class="type-badge type-${p.play_type}">${p.play_type}</span></div>
+      <button class="buy-btn" data-key="${key}" onclick="buyPick(this)">BUY ${escHtml(p.direction)} $${(p.bet_amount ?? 5).toFixed(2)}</button>
+    </div>
+  </div>`;
+}
+
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function startCountdown(id, secs) {
+  clearInterval(countdowns[id]); let r = secs;
+  countdowns[id] = setInterval(() => {
+    r--;
+    const el = document.getElementById('cd_'+id);
+    if (!el) { clearInterval(countdowns[id]); return; }
+    if (r <= 0) { el.textContent = '⏱ EXPIRED'; clearInterval(countdowns[id]); return; }
+    el.textContent = `⏱ ${r}s`;
+    if (r < 60) el.style.color = 'var(--red)';
+  }, 1000);
+}
+
+async function buyPick(btn) {
+  const key = btn.dataset.key;
+  const p   = _pickStore[key];
+  if (!p) { showToast('Pick data not found','error'); return; }
+  const origText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'PLACING...';
+  try {
+    const res = await fetch('/api/claude-picks/buy', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        token_id: p.token_id,
+        direction: p.direction,
+        title: p.title || p.symbol,
+        ask: p.ask,
+        slug: p.slug,
+        condition_id: p.condition_id || '',
+        timeframe: p.timeframe,
+        play_type: p.play_type,
+        conviction: p.conviction || 'MEDIUM',
+        prob: p.prob,
+        amount_usd: (typeof p.bet_amount === 'number' ? p.bet_amount : 5.0)
+      })
+    });
+    const d = await res.json();
+    if (d.success) {
+      const label = p.title ? p.title.slice(0,30) : p.symbol;
+      showToast(`Filled: ${label} ${p.direction} @ $${p.ask}`,'success');
+      btn.textContent = '✓ FILLED'; btn.style.opacity = '0.5';
+    } else {
+      showToast('Failed: '+(d.error||'unknown error'),'error');
+      btn.disabled = false; btn.textContent = origText;
+    }
+  } catch(e) {
+    showToast('Error: '+e.message,'error');
+    btn.disabled = false; btn.textContent = origText;
+  }
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type+' show';
+  setTimeout(() => t.className = 'toast '+type, 2500);
+}
+
+function toggleAutoRefresh() {
+  clearInterval(autoTimer);
+  if (document.getElementById('autoRefresh').checked) autoTimer = setInterval(runScan, 30000);
+}
+
+// ── CONVICTION THRESHOLD SLIDER ──────────────────────────────────────────────
+const CONV_LEVELS = ['MEDIUM','HIGH','STRONG','EXTREME'];
+const CONV_COLORS = {MEDIUM:'var(--yellow)',HIGH:'var(--orange)',STRONG:'var(--cyan)',EXTREME:'var(--red)'};
+// Active conviction levels — set of strings. null = use legacy threshold (migrates on first toggle)
+let _activeLevels = null;
+
+function _renderConvToggles() {
+  const wrap = document.getElementById('convLevelToggles');
+  const hint = document.getElementById('convLevelHint');
+  if (!wrap) return;
+  const active = _activeLevels || new Set(['HIGH','EXTREME']);
+  wrap.innerHTML = CONV_LEVELS.map(l => {
+    const on = active.has(l);
+    const col = CONV_COLORS[l];
+    const bg  = on ? col : 'transparent';
+    const tc  = on ? 'var(--bg)' : col;
+    const op  = on ? '1' : '0.45';
+    return `<button onclick="toggleConvLevel('${l}')"
+      style="font-size:9px;font-weight:700;letter-spacing:.07em;padding:4px 10px;border-radius:4px;
+             border:1px solid ${col};background:${bg};color:${tc};cursor:pointer;opacity:${op};
+             font-family:'IBM Plex Mono',monospace;transition:all .15s" id="convBtn-${l}">${l}</button>`;
+  }).join('');
+  const activeArr = [...active];
+  hint.textContent = activeArr.length ? 'trading: ' + activeArr.join(', ') : 'WARNING: no levels selected — nothing will trade';
+  hint.style.color = activeArr.length ? 'var(--text3)' : 'var(--red)';
+}
+
+function toggleConvLevel(level) {
+  if (_activeLevels === null) {
+    // First toggle — migrate from legacy threshold to explicit set
+    // Default: enable levels >= current threshold
+    const saved = localStorage.getItem('convictionThreshold') || 'HIGH';
+    const minIdx = CONV_LEVELS.indexOf(saved);
+    _activeLevels = new Set(CONV_LEVELS.filter((_,i) => i >= minIdx));
+  }
+  if (_activeLevels.has(level)) {
+    _activeLevels.delete(level);
+  } else {
+    _activeLevels.add(level);
+  }
+  localStorage.setItem('convictionLevels', JSON.stringify([..._activeLevels]));
+  _renderConvToggles();
+  // Sync to server
+  fetch('/api/claude-strategy-modes', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({conviction_levels: [..._activeLevels]})
+  }).catch(()=>{});
+  showToast(`Trading: ${[..._activeLevels].join(', ') || 'NONE'}`, '');
+}
+
+function initConvictionSlider() {
+  // Load saved levels from localStorage or server
+  const savedLevels = localStorage.getItem('convictionLevels');
+  if (savedLevels) {
+    try { _activeLevels = new Set(JSON.parse(savedLevels)); } catch(e) {}
+  }
+  _renderConvToggles();
+}
+
+// ── PER-CONVICTION BET SLIDERS ───────────────────────────────────────────────
+const BET_LEVELS = ['MEDIUM','HIGH','STRONG','EXTREME'];
+const BET_COLORS = {'MEDIUM':'var(--yellow)','HIGH':'var(--orange)','STRONG':'var(--cyan)','EXTREME':'var(--red)'};
+const BET_DEFAULTS = {'MEDIUM':1,'HIGH':3,'STRONG':5,'EXTREME':5};
+
+function renderConvictionBetRows(bets) {
+  const container = document.getElementById('convictionBetRows');
+  if (!container) return;
+  container.innerHTML = BET_LEVELS.map(level => {
+    const val = bets[level] || BET_DEFAULTS[level];
+    const col = BET_COLORS[level];
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span class="badge badge-${level}" style="font-size:8px;min-width:54px;text-align:center">${level}</span>
+      <input type="range" class="conviction-range" style="flex:1" min="1" max="200" step="1" value="${val}"
+             oninput="onBetSlide('${level}',this.value)">
+      <span id="betDisplay-${level}" style="color:${col};font-size:11px;font-weight:700;min-width:32px;text-align:right">$${val}</span>
+    </div>`;
+  }).join('');
+}
+
+function onBetSlide(level, val) {
+  const v = parseInt(val);
+  const el = document.getElementById('betDisplay-' + level);
+  if (el) el.textContent = '$' + v;
+  const bets = JSON.parse(localStorage.getItem('convictionBets') || '{}');
+  bets[level] = v;
+  localStorage.setItem('convictionBets', JSON.stringify(bets));
+  clearTimeout(window._betTimer);
+  window._betTimer = setTimeout(() => {
+    fetch('/api/claude-strategy-modes', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({conviction_bets: bets})
+    });
+  }, 400);
+}
+
+function toggleSettingsPanel() {
+  const body = document.getElementById('settingsPanelBody');
+  const chevron = document.getElementById('settingsPanelChevron');
+  const open = body.classList.toggle('open');
+  chevron.innerHTML = open ? '&#x25B2;' : '&#x25BC;';
+  localStorage.setItem('settingsPanelOpen', open ? '1' : '0');
+}
+
+function toggleModePanel() {
+  const body = document.getElementById('modePanelBody');
+  const chevron = document.getElementById('modePanelChevron');
+  const open = body.classList.toggle('open');
+  chevron.innerHTML = open ? '&#x25B2;' : '&#x25BC;';
+  localStorage.setItem('modePanelOpen', open ? '1' : '0');
+}
+
+function toggleMaxPanel() {
+  const body = document.getElementById('maxPanelBody');
+  const chevron = document.getElementById('maxPanelChevron');
+  const open = body.classList.toggle('open');
+  chevron.innerHTML = open ? '&#x25B2;' : '&#x25BC;';
+}
+
+// ── FadeGiga hitrate gate tuning — wraps /api/hitrate-gate-config ──────────
+async function _applyHitrateGate(payload, label) {
+  try {
+    const r = await fetch('/api/hitrate-gate-config', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({error: 'HTTP ' + r.status}));
+      alert(`Hitrate gate ${label} failed:\n${err.error || 'unknown error'}`);
+      return;
+    }
+    const j = await r.json();
+    showToast(`Gate ${label}: n≥${j.min_n} wr≥${j.min_pct}% (was n≥${j.previous.min_n} wr≥${j.previous.min_pct}%)`);
+    runClaudePicksMax();   // refresh MAX panel with new gate values
+  } catch(e) {
+    alert(`Hitrate gate ${label} error:\n${e.message}`);
+  }
+}
+
+async function saveHitrateGate() {
+  const n   = parseInt(document.getElementById('hr-min-n').value, 10);
+  const pct = parseFloat(document.getElementById('hr-min-pct').value);
+  if (Number.isNaN(n) || Number.isNaN(pct)) {
+    alert('Invalid values — please enter numeric n and wr%.');
+    return;
+  }
+  if (!confirm(`Set FadeGiga hitrate gate to n≥${n}, wr≥${pct}%?\n\nLowering = more signals go live (riskier).\nRaising = more conservative.`)) return;
+  return _applyHitrateGate({min_n: n, min_pct: pct}, 'saved');
+}
+
+async function presetHitrateGate(preset) {
+  const verb = preset === 'loosen' ? 'LOOSEN (n-5, wr-5pp)'
+             : preset === 'tighten' ? 'TIGHTEN (n+5, wr+5pp)'
+             : 'RESET to defaults (n=20, wr=60%)';
+  if (!confirm(`Apply preset: ${verb}?`)) return;
+  return _applyHitrateGate({preset}, preset);
+}
+
+// ── Play-type level flip (real/paper) — wraps /api/claude-strategy-modes ───
+async function setPlayTypeMode(play_type, mode) {
+  if (!confirm(`Flip ${play_type} -> ${mode.toUpperCase()}?`)) return;
+  try {
+    const r = await fetch('/api/claude-strategy-modes', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({play_type, mode}),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({error: 'HTTP ' + r.status}));
+      alert(`Flip ${play_type} failed:\n${err.error || 'unknown error'}`);
+      return;
+    }
+    showToast(`${play_type} flipped to ${mode.toUpperCase()}`);
+    // Refresh both the MAX panel AND the strategy modes panel
+    runClaudePicksMax();
+    if (typeof loadStrategyModes === 'function') loadStrategyModes();
+  } catch(e) {
+    alert(`Flip ${play_type} error:\n${e.message}`);
+  }
+}
+
+// ── Cell-level override management (per-(play_type, symbol, direction)) ────
+async function setCellOverride(play_type, symbol, direction, mode, bypassRl) {
+  const key = `${play_type}|${symbol}|${direction}`;
+  const verb = mode === null ? 'clearing' : `setting to ${mode}${bypassRl ? '+bypass_rl' : ''}`;
+  try {
+    const body = (mode === null)
+      ? {play_type, symbol, direction}
+      : {play_type, symbol, direction, mode, ...(bypassRl ? {bypass_rl: true} : {})};
+    const opts = {
+      method: mode === null ? 'DELETE' : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    };
+    const r = await fetch('/api/claude-cell-override', opts);
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({error: 'HTTP ' + r.status}));
+      alert(`Override ${verb} failed for ${key}:\n${err.error || 'unknown error'}`);
+      return;
+    }
+    showToast(`Cell override ${verb}: ${key}`);
+    // Refresh the MAX panel so the new override state shows
+    runClaudePicksMax();
+  } catch(e) {
+    alert(`Override ${verb} error for ${key}:\n${e.message}`);
+  }
+}
+
+// 2026-05-23: Min-edge threshold for UNBLOCK eligibility on Claude Picks. Cells with
+// counterfactual avg_pnl below this are greyed out — slippage can eat thin edges.
+// Stored in localStorage so it persists across reloads.
+let _claudeRlMinEdge = parseFloat(localStorage.getItem('claudeRlMinEdge') || '0.5');
+function setClaudeRlMinEdge(v) {
+  const parsed = parseFloat(v);
+  if (Number.isFinite(parsed) && parsed >= -10 && parsed <= 50) {
+    _claudeRlMinEdge = parsed;
+    localStorage.setItem('claudeRlMinEdge', String(parsed));
+    if (typeof runClaudePicksMax === 'function') runClaudePicksMax();
+  }
+}
+
+// 2026-05-23: Unblock a Claude Picks cell from its play-type RL gate.
+async function unblockClaudeCellFromRl(play_type, symbol, direction) {
+  const key = `${play_type}|${symbol}|${direction}`;
+  if (!confirm(
+    `Unblock ${key} from the per-play_type RL gate?\n\n` +
+    `Future signals on this cell will skip the RL Q-table check. Q-table still updates from outcomes ` +
+    `(learning continues). Trade goes paper/live based on existing override + play_type mode.\n\n` +
+    `To undo: clear the cell override (CLR button in ACTIVE CELL OVERRIDES).`
+  )) return;
+  return setCellOverride(play_type, symbol, direction, 'paper', true);
+}
+
+// ── MAX backtest for Claude Picks ──────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function runClaudePicksMax() {
+  const btn    = document.getElementById('cp-max-btn');
+  const status = document.getElementById('cp-max-status');
+  const out    = document.getElementById('cp-max-results');
+  btn.textContent = '⏳ RUNNING…';
+  btn.disabled = true;
+  status.textContent = 'Crunching resolved trades…';
+  status.style.color = 'var(--yellow, #d96)';
+
+  try {
+    const r = await fetch('/api/claude-picks-backtest-max');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d.error) { status.textContent = d.error; status.style.color = '#f55'; return; }
+
+    status.innerHTML =
+      `Analyzed <b>${d.n_total}</b> resolved trades across <b>${d.n_play_types}</b> play types ` +
+      `(${d.n_cells} cells with n≥10). MIN_N=20 for play-type recs, 15 for cells.`;
+    status.style.color = 'var(--text2)';
+
+    const recs = d.recommendations || {};
+    const pp   = recs.play_type_promote    || [];
+    const pq   = recs.play_type_quarantine || [];
+    const tc   = recs.top_cells            || [];
+    const bc   = recs.bleeder_cells        || [];
+
+    // Helpers for row rendering
+    const pnlCol = v => v >= 0 ? '#3c3' : '#f55';
+    const modePill = m => `<span style="background:${m==='real'?'#3c3':'#666'};color:#fff;padding:1px 6px;border-radius:3px;font-size:8px;font-weight:700;letter-spacing:.05em">${esc(m).toUpperCase()}</span>`;
+
+    // Flippable play_types (must match PLAY_TYPES_LIST in polymarket_bot.py:16868).
+    // CRYPTO-AUTO is excluded — it's a paper-bucket label for FadeGiga signals that the
+    // hitrate gate blocked, not a flippable strategy. To act on CRYPTO-AUTO, tune the
+    // FadeGiga gate (HITRATE_LIVE_MIN_PCT / HITRATE_LIVE_MIN_N).
+    const FLIPPABLE_PLAY_TYPES = new Set(['TIME-LOCK','MOMENTUM','MISPRICED','MANIP','NEAR-CLOSE','VOL-SURGE']);
+
+    const hrGate = d.hitrate_gate || {min_n: 20, min_pct: 60.0};
+
+    const playTypeFlipBtns = (play, curMode) => {
+      if (!FLIPPABLE_PLAY_TYPES.has(play)) {
+        if (play === 'CRYPTO-AUTO') {
+          // Inline FadeGiga hitrate-gate tuner. CRYPTO-AUTO is the paper-bucket
+          // label for signals blocked by this gate, so the action is to loosen
+          // the gate — not flip a strategy_mode.
+          return `<span title="CRYPTO-AUTO = FadeGiga AUTO-BUY signals blocked by the per-symbol hitrate gate. Loosen the thresholds below to let more through."
+                       style="display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:8px;font-family:'IBM Plex Mono',monospace;color:var(--text2);">
+            <span style="color:var(--text3);">gate:</span>
+            n&ge;<input id="hr-min-n"   type="number" min="5"  max="100" step="1"   value="${hrGate.min_n}"   style="width:38px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:1px 2px;font-family:inherit;font-size:9px;">
+            wr&ge;<input id="hr-min-pct" type="number" min="40" max="80"  step="0.5" value="${hrGate.min_pct}" style="width:42px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:1px 2px;font-family:inherit;font-size:9px;">%
+            <button onclick="saveHitrateGate()" style="font-size:8px;font-family:inherit;padding:2px 6px;background:#2a4a5a;border:1px solid #4af;color:#fff;border-radius:2px;cursor:pointer;letter-spacing:.05em;">SAVE</button>
+            <button onclick="presetHitrateGate('loosen')" title="Drop n by 5, wr by 5pp (e.g. 20/60% -> 15/55%)" style="font-size:8px;font-family:inherit;padding:2px 6px;background:#1a5a1a;border:1px solid #3a3;color:#fff;border-radius:2px;cursor:pointer;letter-spacing:.05em;">LOOSEN</button>
+            <button onclick="presetHitrateGate('tighten')" title="Bump n by 5, wr by 5pp" style="font-size:8px;font-family:inherit;padding:2px 6px;background:#5a1a1a;border:1px solid #a33;color:#fff;border-radius:2px;cursor:pointer;letter-spacing:.05em;">TIGHTEN</button>
+            <button onclick="presetHitrateGate('reset')" title="Restore defaults n=20 wr=60%" style="font-size:8px;font-family:inherit;padding:2px 6px;background:#222;border:1px solid #555;color:#aaa;border-radius:2px;cursor:pointer;letter-spacing:.05em;">RESET</button>
+          </span>`;
+        }
+        return `<span style="font-size:8px;color:var(--text3);">— not flippable</span>`;
+      }
+      const realBtn  = `<button onclick="setPlayTypeMode('${play}','real')" ${curMode==='real'?'disabled':''} style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:${curMode==='real'?'#444':'#1a5a1a'};border:1px solid ${curMode==='real'?'#555':'#3a3'};color:${curMode==='real'?'#888':'#fff'};border-radius:2px;cursor:${curMode==='real'?'default':'pointer'};letter-spacing:.05em;margin-right:3px;">→LIVE</button>`;
+      const paperBtn = `<button onclick="setPlayTypeMode('${play}','paper')" ${curMode==='paper'?'disabled':''} style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:${curMode==='paper'?'#444':'#5a1a1a'};border:1px solid ${curMode==='paper'?'#555':'#a33'};color:${curMode==='paper'?'#888':'#fff'};border-radius:2px;cursor:${curMode==='paper'?'default':'pointer'};letter-spacing:.05em;">→PAPER</button>`;
+      return realBtn + paperBtn;
+    };
+
+    const renderPlayTypeTable = (rows, title, kind) => {
+      if (!rows.length) {
+        return `<div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;color:${kind==='promote'?'#3c3':'#f55'};margin-bottom:4px;letter-spacing:.05em;">${title} (0)</div>
+          <div style="font-size:9px;color:var(--text3);padding:4px 0;">no play_types meet criteria</div>
+        </div>`;
+      }
+      const body = rows.map(r => `
+        <tr>
+          <td style="padding:3px 6px;font-weight:700;">${esc(r.play_type)}</td>
+          <td style="padding:3px 6px;">${modePill(r.current_mode)}</td>
+          <td style="padding:3px 6px;text-align:right;">${r.n}</td>
+          <td style="padding:3px 6px;text-align:right;">${r.wr}%</td>
+          <td style="padding:3px 6px;text-align:right;color:${pnlCol(r.avg_pnl)};">$${r.avg_pnl}</td>
+          <td style="padding:3px 6px;text-align:right;color:${pnlCol(r.total_pnl)};">$${r.total_pnl}</td>
+          <td style="padding:3px 6px;white-space:nowrap;">${playTypeFlipBtns(r.play_type, r.current_mode)}</td>
+          <td style="padding:3px 6px;font-size:8px;color:var(--text3);">${esc(r.recommendation || '')}</td>
+        </tr>
+      `).join('');
+      return `<div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:${kind==='promote'?'#3c3':'#f55'};margin-bottom:4px;letter-spacing:.05em;">${title} (${rows.length})</div>
+        <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+          <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+            <th style="padding:3px 6px;text-align:left;">play_type</th>
+            <th style="padding:3px 6px;text-align:left;">mode</th>
+            <th style="padding:3px 6px;text-align:right;">n</th>
+            <th style="padding:3px 6px;text-align:right;">wr</th>
+            <th style="padding:3px 6px;text-align:right;">avg/trade</th>
+            <th style="padding:3px 6px;text-align:right;">total PnL</th>
+            <th style="padding:3px 6px;text-align:left;">flip</th>
+            <th style="padding:3px 6px;text-align:left;">note</th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`;
+    };
+
+    const cellOverrides = d.cell_overrides || {};
+    const cellKey = r => `${r.play_type}|${r.symbol}|${r.direction}`;
+    // 2026-05-23: cell_overrides value can be string ('paper'|'real') OR
+    // dict {mode, bypass_rl?} so we need a helper to extract the mode.
+    const modeOf = v => (typeof v === 'string' ? v : (v && typeof v === 'object' ? v.mode : null));
+    const isBypassed = v => !!(v && typeof v === 'object' && v.bypass_rl);
+    const overrideBadge = r => {
+      const v = cellOverrides[cellKey(r)];
+      const m = modeOf(v);
+      const bypass = isBypassed(v) ? ` <span style="background:#0a4a0a;color:#9f9;padding:0 3px;border-radius:1px;font-size:7px;font-weight:700;margin-left:2px;">RL✓</span>` : '';
+      if (m === 'paper') return `<span style="background:#666;color:#fff;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">PAPER</span>${bypass}`;
+      if (m === 'real')  return `<span style="background:#3c3;color:#fff;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">LIVE</span>${bypass}`;
+      return `<span style="color:var(--text3);font-size:8px;">—</span>`;
+    };
+    const overrideBtns = (r, suggestPaper) => {
+      const cur = modeOf(cellOverrides[cellKey(r)]);
+      const btn = (mode, label, bg, border) => `<button onclick="setCellOverride('${r.play_type}','${r.symbol}','${r.direction}','${mode}')" ${cur===mode?'disabled':''} style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:${cur===mode?'#444':bg};border:1px solid ${border};color:${cur===mode?'#888':'#fff'};border-radius:2px;cursor:${cur===mode?'default':'pointer'};letter-spacing:.05em;margin-right:3px;">${label}</button>`;
+      const clr = cur ? `<button onclick="setCellOverride('${r.play_type}','${r.symbol}','${r.direction}',null)" style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:#222;border:1px solid #555;color:#aaa;border-radius:2px;cursor:pointer;letter-spacing:.05em;">CLR</button>` : '';
+      return btn('paper','→PAPER','#5a1a1a','#a33') + btn('real','→LIVE','#1a5a1a','#3a3') + clr;
+    };
+
+    const renderCellTable = (rows, title, kind) => {
+      if (!rows.length) {
+        return `<div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;color:${kind==='top'?'#3c3':'#f55'};margin-bottom:4px;letter-spacing:.05em;">${title} (0)</div>
+          <div style="font-size:9px;color:var(--text3);padding:4px 0;">no cells meet criteria</div>
+        </div>`;
+      }
+      const body = rows.map(r => `
+        <tr>
+          <td style="padding:3px 6px;">${esc(r.play_type)}</td>
+          <td style="padding:3px 6px;">${esc(r.symbol)}</td>
+          <td style="padding:3px 6px;">${esc(r.direction)}</td>
+          <td style="padding:3px 6px;text-align:right;">${r.n}</td>
+          <td style="padding:3px 6px;text-align:right;">${r.wr}%</td>
+          <td style="padding:3px 6px;text-align:right;color:${pnlCol(r.avg_pnl)};">$${r.avg_pnl}</td>
+          <td style="padding:3px 6px;text-align:right;color:${pnlCol(r.total_pnl)};">$${r.total_pnl}</td>
+          <td style="padding:3px 6px;text-align:center;">${overrideBadge(r)}</td>
+          <td style="padding:3px 6px;white-space:nowrap;">${overrideBtns(r, kind!=='top')}</td>
+        </tr>
+      `).join('');
+      return `<div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:${kind==='top'?'#3c3':'#f55'};margin-bottom:4px;letter-spacing:.05em;">${title} (${rows.length})</div>
+        <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+          <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+            <th style="padding:3px 6px;text-align:left;">play</th>
+            <th style="padding:3px 6px;text-align:left;">sym</th>
+            <th style="padding:3px 6px;text-align:left;">dir</th>
+            <th style="padding:3px 6px;text-align:right;">n</th>
+            <th style="padding:3px 6px;text-align:right;">wr</th>
+            <th style="padding:3px 6px;text-align:right;">avg/trade</th>
+            <th style="padding:3px 6px;text-align:right;">total PnL</th>
+            <th style="padding:3px 6px;text-align:center;">override</th>
+            <th style="padding:3px 6px;text-align:left;">action</th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`;
+    };
+
+    // All-play-types table (always shown, for context)
+    const pts = d.play_types || [];
+    const allBody = pts.map(p => `
+      <tr>
+        <td style="padding:3px 6px;font-weight:700;">${esc(p.play_type)}</td>
+        <td style="padding:3px 6px;">${modePill(p.current_mode)}</td>
+        <td style="padding:3px 6px;text-align:right;">${p.n}</td>
+        <td style="padding:3px 6px;text-align:right;">${p.wr}%</td>
+        <td style="padding:3px 6px;text-align:right;color:${pnlCol(p.avg_pnl)};">$${p.avg_pnl}</td>
+        <td style="padding:3px 6px;text-align:right;color:${pnlCol(p.total_pnl)};">$${p.total_pnl}</td>
+        <td style="padding:3px 6px;white-space:nowrap;">${playTypeFlipBtns(p.play_type, p.current_mode)}</td>
+      </tr>
+    `).join('');
+
+    // ── ACTIVE CELL OVERRIDES — every cell with a manual paper/real override, regardless
+    // of whether it shows up in STRONGEST/BLEEDING bands. Cells in the middle PnL band
+    // (-$0.50 < avg < $1.00) or under the n=15 threshold aren't in those tables, so this
+    // panel is the only way to see/toggle them after they're set.
+    const allCells = d.cells || [];
+    const cellsByKey = Object.fromEntries(allCells.map(c => [`${c.play_type}|${c.symbol}|${c.direction}`, c]));
+    const overrideKeys = Object.keys(cellOverrides);
+    const renderOverridesTable = () => {
+      if (!overrideKeys.length) {
+        return `<div style="margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;color:#fa3;margin-bottom:4px;letter-spacing:.05em;">🛠 ACTIVE CELL OVERRIDES (0)</div>
+          <div style="font-size:9px;color:var(--text3);padding:4px 0;">no cell overrides set</div>
+        </div>`;
+      }
+      // Sort: real first, then paper; within each, by play_type then symbol then direction.
+      const sorted = overrideKeys.slice().sort((a, b) => {
+        const ma = cellOverrides[a], mb = cellOverrides[b];
+        if (ma !== mb) return ma === 'real' ? -1 : 1;
+        return a.localeCompare(b);
+      });
+      const body = sorted.map(k => {
+        const [play, sym, dir] = k.split('|');
+        const cell = cellsByKey[k];
+        const r = cell || {play_type: play, symbol: sym, direction: dir, n: '—', wr: '—', avg_pnl: null, total_pnl: null};
+        const avgCell = (r.avg_pnl !== null && r.avg_pnl !== undefined)
+          ? `<td style="padding:3px 6px;text-align:right;color:${pnlCol(r.avg_pnl)};">$${r.avg_pnl}</td>`
+          : `<td style="padding:3px 6px;text-align:right;color:var(--text3);">—</td>`;
+        const totCell = (r.total_pnl !== null && r.total_pnl !== undefined)
+          ? `<td style="padding:3px 6px;text-align:right;color:${pnlCol(r.total_pnl)};">$${r.total_pnl}</td>`
+          : `<td style="padding:3px 6px;text-align:right;color:var(--text3);">—</td>`;
+        return `<tr>
+          <td style="padding:3px 6px;">${esc(play)}</td>
+          <td style="padding:3px 6px;">${esc(sym)}</td>
+          <td style="padding:3px 6px;">${esc(dir)}</td>
+          <td style="padding:3px 6px;text-align:right;">${r.n}</td>
+          <td style="padding:3px 6px;text-align:right;">${r.wr !== '—' ? r.wr + '%' : '—'}</td>
+          ${avgCell}
+          ${totCell}
+          <td style="padding:3px 6px;text-align:center;">${overrideBadge(r)}</td>
+          <td style="padding:3px 6px;white-space:nowrap;">${overrideBtns(r)}</td>
+        </tr>`;
+      }).join('');
+      const liveCount = sorted.filter(k => cellOverrides[k] === 'real').length;
+      const paperCount = sorted.length - liveCount;
+      return `<div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:#fa3;margin-bottom:4px;letter-spacing:.05em;">🛠 ACTIVE CELL OVERRIDES (${sorted.length}) <span style="font-weight:400;color:var(--text3);">— ${liveCount} live, ${paperCount} paper</span></div>
+        <div style="font-size:8px;color:var(--text3);margin-bottom:3px;">Cells outside the strongest/bleeding bands or below n=15 won't appear in those tables — manage them here.</div>
+        <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+          <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+            <th style="padding:3px 6px;text-align:left;">play</th>
+            <th style="padding:3px 6px;text-align:left;">sym</th>
+            <th style="padding:3px 6px;text-align:left;">dir</th>
+            <th style="padding:3px 6px;text-align:right;">n</th>
+            <th style="padding:3px 6px;text-align:right;">wr</th>
+            <th style="padding:3px 6px;text-align:right;">avg/trade</th>
+            <th style="padding:3px 6px;text-align:right;">total PnL</th>
+            <th style="padding:3px 6px;text-align:center;">override</th>
+            <th style="padding:3px 6px;text-align:left;">action</th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`;
+    };
+
+    // 2026-05-22 + 2026-05-23: RL-BLOCKED CELLS report with UNBLOCK action.
+    // Aggregates the claude_rl_blocked.json shadow log grouped by (play_type, symbol, direction).
+    // avg_pnl is counterfactual — what the trade WOULD have made if not RL-blocked.
+    // Click →UNBLOCK to set bypass_rl=true on the cell override (Q-table still learns from outcomes).
+    const renderRlBlockedTable = (rlBlockedCells) => {
+      if (!Array.isArray(rlBlockedCells) || !rlBlockedCells.length) {
+        return `<div style="margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;color:#9bf;margin-bottom:4px;letter-spacing:.05em;">🚫 RL-BLOCKED CELLS (0)</div>
+          <div style="font-size:9px;color:var(--text3);padding:4px 0;">no resolved RL-blocked entries (n≥10 per cell)</div>
+        </div>`;
+      }
+      const isBypassed = (k) => {
+        const v = cellOverrides[k];
+        return !!(v && typeof v === 'object' && v.bypass_rl);
+      };
+      const sorted = rlBlockedCells.slice().sort((a, b) => b.total_pnl - a.total_pnl);
+      const positives = sorted.filter(c => c.avg_pnl > 0.1).length;
+      const bypassedN = sorted.filter(c => isBypassed(`${c.play_type}|${c.symbol}|${c.direction}`)).length;
+      const rows = sorted.slice(0, 30).map(c => {
+        const k = `${c.play_type}|${c.symbol}|${c.direction}`;
+        const bypassed = isBypassed(k);
+        const belowEdge = c.avg_pnl < _claudeRlMinEdge;   // 2026-05-23: slippage-risk gate
+        const flag = c.avg_pnl > 0.3 ? '<span title="Counterfactual PnL positive — RL gate may be over-suppressing this cell" style="color:#fa3;font-weight:700;">⚠</span>' : '';
+        const statusBadge = bypassed
+          ? `<span title="RL gate is bypassed for this cell. Q-table still learns from outcomes." style="background:#0a4a0a;color:#9f9;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.05em;">✓ BYPASSED</span>`
+          : '';
+        let actionBtns;
+        if (bypassed) {
+          actionBtns = `<button onclick="setCellOverride('${c.play_type}','${c.symbol}','${c.direction}',null)" title="Clear the cell override (re-engages the RL gate)." style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:#222;border:1px solid #555;color:#aaa;border-radius:2px;cursor:pointer;letter-spacing:.05em;">→RE-BLOCK</button>`;
+        } else if (belowEdge) {
+          actionBtns = `<span title="avg_pnl $${c.avg_pnl} < threshold $${_claudeRlMinEdge.toFixed(2)} — slippage can eat thin counterfactual edges. Raise the threshold or skip this cell." style="font-size:8px;color:var(--text3);padding:2px 6px;border:1px dashed #555;border-radius:2px;background:#1a1a1a;letter-spacing:.05em;">⏸ low edge</span>`;
+        } else {
+          actionBtns = `<button onclick="unblockClaudeCellFromRl('${c.play_type}','${c.symbol}','${c.direction}')" title="Bypass the RL gate for this cell. Q-table still learns from outcomes. Trade still respects play_type mode + cell override for paper/real." style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:#1a3a5a;border:1px solid #4af;color:#fff;border-radius:2px;cursor:pointer;letter-spacing:.05em;">→UNBLOCK</button>`;
+        }
+        const rowStyle = bypassed ? 'background:rgba(0,80,0,0.08);' : (belowEdge ? 'opacity:0.55;' : '');
+        return `<tr style="${rowStyle}">
+          <td style="padding:3px 6px;">${esc(c.play_type)}</td>
+          <td style="padding:3px 6px;">${esc(c.symbol)}</td>
+          <td style="padding:3px 6px;">${esc(c.direction)}</td>
+          <td style="padding:3px 6px;text-align:right;">${c.n}</td>
+          <td style="padding:3px 6px;text-align:right;">${c.wr}%</td>
+          <td style="padding:3px 6px;text-align:right;color:${pnlCol(c.avg_pnl)};">$${c.avg_pnl}</td>
+          <td style="padding:3px 6px;text-align:right;color:${pnlCol(c.total_pnl)};">$${c.total_pnl}</td>
+          <td style="padding:3px 6px;text-align:right;font-size:9px;color:var(--text3);">${c.avg_q}</td>
+          <td style="padding:3px 6px;text-align:center;">${statusBadge || flag}</td>
+          <td style="padding:3px 6px;white-space:nowrap;">${actionBtns}</td>
+        </tr>`;
+      }).join('');
+      const bypassNote = bypassedN ? ` <span style="color:#9f9;font-weight:700;">— ${bypassedN} ✓ BYPASSED</span>` : '';
+      const eligibleN = sorted.filter(c => c.avg_pnl >= _claudeRlMinEdge && !isBypassed(`${c.play_type}|${c.symbol}|${c.direction}`)).length;
+      return `<div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:#9bf;margin-bottom:4px;letter-spacing:.05em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span>🚫 RL-BLOCKED CELLS (${sorted.length} resolved, ${positives} ⚠ over-suppression)${bypassNote} — ${eligibleN} above threshold</span>
+          <span style="font-weight:400;color:var(--text3);font-size:9px;">min-edge filter $</span>
+          <input id="claude-rl-min-edge-input" type="number" step="0.1" min="-10" max="50" value="${_claudeRlMinEdge.toFixed(2)}" onchange="setClaudeRlMinEdge(this.value)" style="width:48px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:1px 3px;font-family:'IBM Plex Mono',monospace;font-size:9px;">
+          <span style="font-weight:400;color:var(--text3);font-size:8px;">cells below this avg/trade can't be unblocked (slippage risk).</span>
+        </div>
+        <div style="font-size:8px;color:var(--text3);margin-bottom:3px;">Historical: signals the per-play_type RL gate rejected. AVG PNL is what the trade WOULD have made if let through. <b>→UNBLOCK</b> bypasses the gate going forward. <b>⏸ low edge</b> = below min-edge threshold (slippage may eat the counterfactual edge — typically 1-5¢/trade for these markets).</div>
+        <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+          <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+            <th style="padding:3px 6px;text-align:left;">PLAY</th>
+            <th style="padding:3px 6px;text-align:left;">SYM</th>
+            <th style="padding:3px 6px;text-align:left;">DIR</th>
+            <th style="padding:3px 6px;text-align:right;">N</th>
+            <th style="padding:3px 6px;text-align:right;">WR</th>
+            <th style="padding:3px 6px;text-align:right;">AVG (CF)</th>
+            <th style="padding:3px 6px;text-align:right;">TOTAL (CF)</th>
+            <th style="padding:3px 6px;text-align:right;">AVG Q</th>
+            <th style="padding:3px 6px;text-align:center;">STATUS</th>
+            <th style="padding:3px 6px;text-align:left;">ACTION</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    };
+
+    out.innerHTML = `
+      ${renderPlayTypeTable(pp, '✓ PROMOTE PLAY-TYPE TO LIVE', 'promote')}
+      ${renderPlayTypeTable(pq, '✗ QUARANTINE PLAY-TYPE TO PAPER', 'quarantine')}
+      <div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px;letter-spacing:.05em;">ALL PLAY-TYPES (resolved)</div>
+        <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+          <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+            <th style="padding:3px 6px;text-align:left;">play_type</th>
+            <th style="padding:3px 6px;text-align:left;">mode</th>
+            <th style="padding:3px 6px;text-align:right;">n</th>
+            <th style="padding:3px 6px;text-align:right;">wr</th>
+            <th style="padding:3px 6px;text-align:right;">avg/trade</th>
+            <th style="padding:3px 6px;text-align:right;">total PnL</th>
+            <th style="padding:3px 6px;text-align:left;">flip</th>
+          </tr></thead>
+          <tbody>${allBody}</tbody>
+        </table>
+      </div>
+      ${renderCellTable(tc, '⭐ STRONGEST CELLS (avg ≥ $1.00/trade)', 'top')}
+      ${renderCellTable(bc, '⚠ BLEEDING CELLS (avg ≤ -$0.50/trade)', 'bleed')}
+      ${renderOverridesTable()}
+      ${renderRlBlockedTable(d.rl_blocked_cells || [])}
+    `;
+  } catch(e) {
+    status.textContent = 'error: ' + e.message;
+    status.style.color = '#f55';
+  } finally {
+    btn.textContent = '↺ RE-RUN MAX';
+    btn.disabled = false;
+  }
+}
+// Restore collapsed state on load
+(function() {
+  if (localStorage.getItem('settingsPanelOpen') === '1') {
+    const body = document.getElementById('settingsPanelBody');
+    const chevron = document.getElementById('settingsPanelChevron');
+    if (body) { body.classList.add('open'); chevron.innerHTML = '&#x25B2;'; }
+  }
+  if (localStorage.getItem('modePanelOpen') === '1') {
+    const body = document.getElementById('modePanelBody');
+    const chevron = document.getElementById('modePanelChevron');
+    if (body) { body.classList.add('open'); chevron.innerHTML = '&#x25B2;'; }
+  }
+  // Restore conviction bet sliders from localStorage
+  const savedBets = JSON.parse(localStorage.getItem('convictionBets') || 'null');
+  renderConvictionBetRows(savedBets || BET_DEFAULTS);
+})();
+
+// ── PROTECTION OVERRIDE (Picks) ─────────────────────────────────────────────
+function applyPicksProtUI(on){
+  const off = document.getElementById('btn-prot-off');
+  const onb = document.getElementById('btn-prot-on');
+  if(!off||!onb) return;
+  if(on){
+    off.style.background = 'var(--bg2)'; off.style.color = 'var(--text2)';
+    onb.style.background = '#f55'; onb.style.color = '#fff';
+  } else {
+    off.style.background = '#9f9'; off.style.color = '#000';
+    onb.style.background = 'var(--bg2)'; onb.style.color = '#f55';
+  }
+}
+async function loadPicksProtectionOverride(){
+  try{
+    const r = await fetch('/api/protection-override');
+    const s = await r.json();
+    applyPicksProtUI(!!s.picks);
+  } catch(e){ console.error(e); }
+}
+async function setPicksProtectionOverride(on){
+  try{
+    const r = await fetch('/api/protection-override',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({scanner:'picks', on:!!on})});
+    const s = await r.json();
+    if(s.error){ alert('Error: '+s.error); return; }
+    applyPicksProtUI(!!s.picks);
+  } catch(e){ console.error(e); }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadPicksProtectionOverride);
+else loadPicksProtectionOverride();
+
+// ── STRATEGY MODES ───────────────────────────────────────────────────────────
+const TYPE_COLORS = {
+  'TIME-LOCK':  'var(--red)',
+  'MOMENTUM':   'var(--blue)',
+  'MISPRICED':  'var(--green)',
+  'MANIP':      'var(--yellow)',
+  'NEAR-CLOSE': '#ffa500',
+  'VOL-SURGE':  '#b450ff',
+};
+
+const DEFAULT_PLAY_TYPES = ['TIME-LOCK','MOMENTUM','MISPRICED','MANIP','NEAR-CLOSE','VOL-SURGE'];
+
+async function loadStrategyModes() {
+  try {
+    const r = await fetch('/api/claude-strategy-modes');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d.modes) {
+      localStorage.setItem('strategyModes', JSON.stringify(d.modes));
+      renderModeRows(d.modes, d.play_types || DEFAULT_PLAY_TYPES);
+      // Sync conviction levels from server (new toggle model)
+      if (d.conviction_levels && Array.isArray(d.conviction_levels)) {
+        _activeLevels = new Set(d.conviction_levels);
+        localStorage.setItem('convictionLevels', JSON.stringify([..._activeLevels]));
+        _renderConvToggles();
+      } else if (d.conviction_threshold && _activeLevels === null) {
+        // Legacy fallback: derive active set from min-threshold
+        const idx = CONV_LEVELS.indexOf(d.conviction_threshold);
+        if (idx >= 0) {
+          localStorage.setItem('convictionThreshold', d.conviction_threshold);
+        }
+        _renderConvToggles();
+      }
+      // Sync conviction bet sliders from server
+      if (d.conviction_bets) {
+        localStorage.setItem('convictionBets', JSON.stringify(d.conviction_bets));
+        renderConvictionBetRows(d.conviction_bets);
+      }
+      return;
+    }
+  } catch(e) {}
+  // Fallback: use localStorage or all-paper defaults
+  const saved = JSON.parse(localStorage.getItem('strategyModes') || 'null');
+  const modes = saved || Object.fromEntries(DEFAULT_PLAY_TYPES.map(pt => [pt, 'paper']));
+  renderModeRows(modes, DEFAULT_PLAY_TYPES);
+}
+
+function renderModeRows(modes, playTypes) {
+  const container = document.getElementById('modeRows');
+  if (!container) return;
+  container.innerHTML = playTypes.map(pt => {
+    const isReal = modes[pt] === 'real';
+    const col = TYPE_COLORS[pt] || 'var(--text2)';
+    return `
+      <div class="mode-row">
+        <div class="mode-label">
+          <span class="type-badge type-${pt}" style="font-size:9px">${pt}</span>
+          <span class="mode-status ${isReal ? 'real' : ''}" id="mode-status-${pt}">
+            ${isReal ? '● REAL' : '○ PAPER'}
+          </span>
+        </div>
+        <label class="pill" title="Toggle ${pt} real/paper">
+          <input type="checkbox" ${isReal ? 'checked' : ''} onchange="toggleMode('${pt}', this.checked)">
+          <span class="pill-track"></span>
+          <span class="pill-thumb"></span>
+        </label>
+      </div>`;
+  }).join('');
+}
+
+async function toggleMode(playType, isReal) {
+  const mode = isReal ? 'real' : 'paper';
+  // Optimistically update localStorage immediately
+  const saved = JSON.parse(localStorage.getItem('strategyModes') || '{}');
+  saved[playType] = mode;
+  localStorage.setItem('strategyModes', JSON.stringify(saved));
+  // Update status label instantly
+  const statusEl = document.getElementById(`mode-status-${playType}`);
+  if (statusEl) {
+    statusEl.className = 'mode-status' + (isReal ? ' real' : '');
+    statusEl.textContent = isReal ? '● REAL' : '○ PAPER';
+  }
+  showToast(`${playType} → ${mode.toUpperCase()}`, isReal ? 'success' : '');
+  // Best-effort server sync
+  try {
+    const r = await fetch('/api/claude-strategy-modes', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({play_type: playType, mode})
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.modes) localStorage.setItem('strategyModes', JSON.stringify(d.modes));
+    }
+  } catch(e) {}
+}
+
+// ── PAPER LOG ────────────────────────────────────────────────────────────────
+async function loadPaperLog() {
+  try {
+    const r = await fetch('/api/claude-paper-log');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    renderPaperSummary(d.summary);
+    renderPaperTable(d.trades);
+    // Today PnL — pull from unified /api/daily-pnl endpoint
+    try {
+      const rd = await fetch('/api/daily-pnl');
+      if (rd.ok) {
+        const dpnl = await rd.json();
+        const picks = (dpnl.scanners && dpnl.scanners['Picks']) || {pnl:0, resolved:0, wr:0, real_n:0, real_pnl:0};
+        const tEl = document.getElementById('ps-today-pnl');
+        const tSub = document.getElementById('ps-today-sub');
+        if (tEl) {
+          const total = Number(picks.pnl) || 0;
+          const realPnl = Number(picks.real_pnl) || 0;
+          const paperPnl = total - realPnl;
+          const n = picks.resolved || 0;
+          const realN = picks.real_n || 0;
+          const paperN = n - realN;
+          const wr = picks.wr || 0;
+          tEl.textContent = (total>=0?'+$':'-$') + Math.abs(total).toFixed(2);
+          tEl.style.color = n === 0 ? 'var(--text2)' : total >= 0 ? 'var(--green)' : 'var(--red)';
+          if (tSub) {
+            if (n === 0) {
+              tSub.innerHTML = '0 trades today UTC';
+            } else {
+              const fmtSeg = (label, count, val) => {
+                if (count === 0) return `<span style="color:var(--text3)">${label} —</span>`;
+                const col = val >= 0 ? 'var(--green)' : 'var(--red)';
+                return `<span style="color:var(--text3)">${label}</span> <span style="color:${col}">${val>=0?'+':''}$${val.toFixed(2)}</span> <span style="color:var(--text3)">(${count})</span>`;
+              };
+              tSub.innerHTML = `${n}t · ${wr}% · ${fmtSeg('paper', paperN, paperPnl)} · ${fmtSeg('real', realN, realPnl)}`;
+            }
+          }
+        }
+      } else {
+        // Endpoint failed — show clear failure rather than stale dash
+        const tEl = document.getElementById('ps-today-pnl');
+        const tSub = document.getElementById('ps-today-sub');
+        if (tEl) { tEl.textContent = 'ERR'; tEl.style.color = 'var(--red)'; }
+        if (tSub) tSub.textContent = `endpoint ${rd.status}`;
+      }
+    } catch(_e) {
+      const tEl = document.getElementById('ps-today-pnl');
+      const tSub = document.getElementById('ps-today-sub');
+      if (tEl) { tEl.textContent = 'ERR'; tEl.style.color = 'var(--red)'; }
+      if (tSub) tSub.textContent = 'fetch failed';
+    }
+    // Update last-refreshed timestamp
+    const el = document.getElementById('logRefreshTs');
+    if (el) {
+      const now = new Date();
+      el.textContent = 'updated ' + now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+      el.style.color = 'var(--green)';
+    }
+  } catch(e) {
+    const el = document.getElementById('logRefreshTs');
+    if (el) { el.textContent = 'fetch error'; el.style.color = 'var(--red)'; }
+  }
+}
+
+function fmtPnl(v) {
+  const n = Number(v) || 0;
+  return `<span style="color:${n>=0?'var(--green)':'var(--red)'}">${n>=0?'+':''}$${Math.abs(n).toFixed(2)}</span>`;
+}
+function fmtWr(st) {
+  if (!st || ((st.wins||0)+(st.losses||0)) === 0) return '<span style="color:var(--text3)">—</span>';
+  const col = st.win_rate >= 60 ? 'var(--green)' : st.win_rate >= 45 ? 'var(--yellow)' : 'var(--red)';
+  return `<span style="color:${col};font-weight:700">${st.win_rate}%</span> <span style="color:var(--text3)">(${st.wins}/${st.wins+st.losses})</span>`;
+}
+
+function renderPaperSummary(s) {
+  if (!s) return;
+  const resolved = (s.wins||0) + (s.losses||0);
+  const total    = resolved + (s.pending||0);
+  const wrNum    = resolved > 0 ? s.win_rate : null;
+  const pnl      = Number(s.total_pnl||0);
+
+  // Top stats tiles
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const setHTML = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML  = val; };
+
+  setText('ps-total',     total);
+  setText('ps-total-sub', resolved + ' resolved');
+  setText('ps-wins',      s.wins||0);
+  setText('ps-wins-sub',  resolved ? Math.round((s.wins||0)/resolved*100) + '% of resolved' : '—');
+  setText('ps-losses',    s.losses||0);
+  setText('ps-losses-sub',resolved ? Math.round((s.losses||0)/resolved*100) + '% of resolved' : '—');
+  setText('ps-pending',   s.pending||0);
+  setText('ps-wr',        wrNum != null ? wrNum.toFixed(1) + '%' : '—');
+  const wrEl = document.getElementById('ps-wr');
+  if (wrEl) wrEl.style.color =
+    wrNum == null ? 'var(--text3)' :
+    wrNum >= 60   ? 'var(--green)' :
+    wrNum >= 45   ? 'var(--yellow)' : 'var(--red)';
+  setText('ps-wr-sub',    resolved + ' / ' + total + ' resolved');
+  setText('ps-pnl',       (pnl>=0?'+$':'-$') + Math.abs(pnl).toFixed(2));
+  const pnlEl = document.getElementById('ps-pnl');
+  if (pnlEl) pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  setText('ps-volume',    '$' + Number(s.total_staked||0).toFixed(0));
+
+  // Hidden legacy span (still set for any consumers that may read it)
+  document.getElementById('paperSummary').textContent =
+    `${s.wins||0}W / ${s.losses||0}L / ${s.pending||0}P · WR ${wrNum!=null?wrNum.toFixed(1)+'%':'—'} · PnL ${(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2)}`;
+
+  // conviction breakdown
+  const bc = s.by_conviction || {};
+  const bt = s.by_type || {};
+  const convRows = ['EXTREME','STRONG','HIGH','MEDIUM'].map(c => {
+    const st = bc[c] || {};
+    const dot = c==='EXTREME'?'var(--red)':c==='STRONG'?'var(--cyan)':c==='HIGH'?'var(--orange)':'var(--yellow)';
+    return `<tr>
+      <td><span class="badge badge-${c}" style="font-size:8px">${c}</span></td>
+      <td>${fmtWr(st)}</td>
+      <td>${fmtPnl(st.pnl)}</td>
+      <td style="color:var(--text3)">${st.total||0}</td>
+    </tr>`;
+  }).join('');
+  const typeRows = ['TIME-LOCK','MOMENTUM','MISPRICED','MANIP','NEAR-CLOSE','VOL-SURGE'].map(pt => {
+    const st = bt[pt] || {};
+    const calBadge = st.calibrated_active
+      ? `<span style="font-size:8px;color:var(--cyan);margin-left:4px" title="Kelly using calibrated WR">CAL</span>`
+      : `<span style="font-size:8px;color:var(--text3);margin-left:4px" title="Using scanner estimate — need ${15-(st.wins||0)-(st.losses||0)} more trades">EST</span>`;
+    // Live (confirmed fills) column
+    const hasFilled = (st.filled_total || 0) > 0;
+    const filledPnlColor = !hasFilled ? 'var(--text3)' : (st.filled_pnl||0) >= 0 ? 'var(--green)' : 'var(--red)';
+    const filledPnlStr = !hasFilled
+      ? `<span style="color:var(--text3);font-size:9px">—</span>`
+      : `<span style="color:${filledPnlColor};font-size:9px">${(st.filled_pnl||0)>=0?'+':''}$${(st.filled_pnl||0).toFixed(2)}</span>`;
+    const filledWrStr = !hasFilled
+      ? `<span style="color:var(--text3);font-size:9px">—</span>`
+      : `<span style="color:${(st.filled_wr||0)>=55?'var(--green)':(st.filled_wr||0)>=45?'var(--yellow)':'var(--red)'};font-size:9px">${st.filled_wr}% <span style="color:var(--text3)">(${st.filled_wins}/${st.filled_total})</span></span>`;
+    // Today PnL column (full PnL — paper + filled, UTC day). Always shows a number.
+    const todayN = st.today_total || 0;
+    const todayPnlVal = st.today_pnl || 0;
+    const todayPnlColor = todayN === 0 ? 'var(--text2)' : todayPnlVal >= 0 ? 'var(--green)' : 'var(--red)';
+    const todayPnlStr = `<span style="color:${todayPnlColor};font-size:9px">${todayPnlVal>=0?'+':''}$${todayPnlVal.toFixed(2)} <span style="color:var(--text3)">(${todayN}t${todayN>0?' '+st.today_wr+'%':''})</span></span>`;
+    return `<tr>
+      <td><span class="type-badge type-${pt}" style="font-size:8px">${pt}</span>${calBadge}</td>
+      <td>${fmtWr(st)}</td>
+      <td>${fmtPnl(st.pnl)}</td>
+      <td style="color:var(--text3)">${st.total||0}</td>
+      <td style="border-left:1px solid rgba(255,255,255,.06);padding-left:8px">${filledWrStr}</td>
+      <td>${filledPnlStr}</td>
+      <td style="border-left:1px solid rgba(255,255,255,.06);padding-left:8px">${todayPnlStr}</td>
+    </tr>`;
+  }).join('');
+
+  // daily conviction breakdown
+  const bd = s.by_day || {};
+  const dailyRows = Object.entries(bd).slice(0, 14).map(([date, day]) => {
+    const all = day['_all'] || {};
+    const wrAll = fmtWr(all);
+    const pnlAll = fmtPnl(all.pnl);
+    const convCells = ['EXTREME','STRONG','HIGH','MEDIUM'].map(c => {
+      const st = day[c];
+      if (!st || st.total === 0) return `<td style="color:var(--text3);font-size:9px">—</td>`;
+      const w = st.wins, l = st.losses, tot = st.total;
+      const wr = (w+l) > 0 ? Math.round(w/(w+l)*100) : null;
+      const col = wr === null ? 'var(--text3)' : wr >= 60 ? 'var(--green)' : wr >= 40 ? 'var(--yellow)' : 'var(--red)';
+      return `<td style="font-size:9px;color:${col}">${wr !== null ? wr+'%' : '—'} <span style="color:var(--text3)">(${tot})</span></td>`;
+    }).join('');
+    const shortDate = date.slice(5); // MM-DD
+    return `<tr>
+      <td style="color:var(--text3);font-size:9px;white-space:nowrap">${shortDate}</td>
+      <td style="font-size:9px">${wrAll}</td>
+      <td style="font-size:9px">${pnlAll}</td>
+      ${convCells}
+    </tr>`;
+  }).join('');
+
+  const statsHtml = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">BY CONVICTION</div>
+        <table class="paper-table">
+          <thead><tr><th>LEVEL</th><th>WIN RATE</th><th>PnL</th><th>TRADES</th></tr></thead>
+          <tbody>${convRows}</tbody>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">BY STRATEGY</div>
+        <table class="paper-table">
+          <thead><tr>
+            <th>TYPE</th><th>WIN RATE</th><th>PnL</th><th>TRADES</th>
+            <th style="border-left:1px solid rgba(255,255,255,.06);padding-left:8px;color:var(--green)">LIVE WR ✓</th>
+            <th style="color:var(--green)">LIVE PnL ✓</th>
+            <th style="border-left:1px solid rgba(255,255,255,.06);padding-left:8px;color:var(--cyan)">TODAY PnL</th>
+          </tr></thead>
+          <tbody>${typeRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">HIT RATE BY DAY &amp; CONVICTION (last 14 days)</div>
+      <table class="paper-table">
+        <thead><tr>
+          <th>DATE</th><th>ALL</th><th>PnL</th>
+          <th><span class="badge badge-EXTREME" style="font-size:7px">EXT</span></th>
+          <th><span class="badge badge-STRONG" style="font-size:7px">STR</span></th>
+          <th><span class="badge badge-HIGH" style="font-size:7px">HIGH</span></th>
+          <th><span class="badge badge-MEDIUM" style="font-size:7px">MED</span></th>
+        </tr></thead>
+        <tbody>${dailyRows || '<tr><td colspan="7" style="color:var(--text3);text-align:center">No resolved trades yet</td></tr>'}</tbody>
+      </table>
+    </div>`;
+
+  // inject after summary line — find or create container
+  let statsEl = document.getElementById('paperStatsBreakdown');
+  if (!statsEl) {
+    statsEl = document.createElement('div');
+    statsEl.id = 'paperStatsBreakdown';
+    document.getElementById('paperSummary').insertAdjacentElement('afterend', statsEl);
+  }
+  statsEl.innerHTML = statsHtml;
+}
+
+function renderPaperTable(trades) {
+  const el = document.getElementById('paperLogTable');
+  if (!trades || !trades.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:10px;padding:8px 0">No paper trades logged yet — run a scan to start tracking HIGH conviction picks.</div>';
+    return;
+  }
+  let rows = '';
+  for (const t of trades) {
+    const oc = t.outcome === 'WIN' ? 'p-win' : t.outcome === 'LOSS' ? 'p-loss' : t.outcome === 'PUSH' ? 'p-push' : 'p-pending';
+    const ocTxt = t.outcome || 'PENDING';
+    const pnl = t.paper_pnl != null
+      ? `<span class="${oc}">${t.paper_pnl >= 0 ? '+' : ''}$${Number(t.paper_pnl).toFixed(2)}</span>`
+      : '<span class="p-pending">—</span>';
+    const stakeVal = (t.paper_stake != null ? t.paper_stake : (t.stake != null ? t.stake : null));
+    const stakeCell = (stakeVal != null && !isNaN(Number(stakeVal)))
+      ? `$${Number(stakeVal).toFixed(2)}`
+      : '<span class="p-pending">—</span>';
+    const dc = t.direction === 'UP' ? 'up' : t.direction === 'DOWN' ? 'down' : 'neutral';
+    const when = t.logged_at ? (() => { const d = new Date(t.logged_at); return (d.getUTCMonth()+1).toString().padStart(2,'0')+'/'+(d.getUTCDate()).toString().padStart(2,'0')+', '+(d.getUTCHours()).toString().padStart(2,'0')+':'+(d.getUTCMinutes()).toString().padStart(2,'0'); })() : '';
+    const title = (t.title || t.symbol || '').slice(0, 42);
+    const titleCell = t.slug
+      ? `<a href="https://polymarket.com/event/${encodeURIComponent(t.slug)}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dotted var(--border2)" title="${escHtml(t.title||'')}">${escHtml(title)}</a>`
+      : escHtml(title);
+    const modeBadge = t.blocked_by
+      ? `<span style="font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(245,197,24,.10);color:var(--yellow);border:1px solid rgba(245,197,24,.35)" title="${escHtml(t.blocked_reason||'')}">BLOCKED·${escHtml(t.blocked_by)}</span>`
+      : t.real_trade
+        ? `<span style="font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(255,59,59,.15);color:#ff3b3b;border:1px solid rgba(255,59,59,.4)">REAL</span>`
+        : `<span style="font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(0,212,255,.08);color:var(--text3);border:1px solid var(--border)">PAPER</span>`;
+    // Time-left-at-fill — static feature of the trade: how many seconds were left
+    // until market close at the moment we entered. Frozen at fill, not a countdown.
+    // Prefer the explicit secs_left/secs_to_close fields if present; otherwise
+    // derive from (market_end OR slug-parsed close ts) - logged_at.
+    let secsLeftCell = '<span style="color:var(--text3);font-size:9px">—</span>';
+    let secsAtFill = (t.secs_left != null) ? t.secs_left
+                    : (t.secs_to_close != null) ? t.secs_to_close
+                    : null;
+    if (secsAtFill == null && t.logged_at) {
+      let endTs = null;
+      if (t.market_end) {
+        const ms = Date.parse(t.market_end);
+        if (!isNaN(ms)) endTs = ms / 1000;
+      }
+      if (!endTs && t.slug) {
+        const m = t.slug.match(/-(\d{10})$/);
+        if (m) {
+          const tf = (t.timeframe || '').toLowerCase();
+          const interval = tf === '15m' ? 900 : tf === '5m' ? 300 : 0;
+          endTs = parseInt(m[1], 10) + interval;
+        }
+      }
+      if (endTs) {
+        const fillTs = Date.parse(t.logged_at) / 1000;
+        if (!isNaN(fillTs)) secsAtFill = Math.floor(endTs - fillTs);
+      }
+    }
+    if (secsAtFill != null) {
+      const s = Math.floor(secsAtFill);
+      const color = s < 60 ? 'var(--red)' : s < 180 ? 'var(--orange)' : 'var(--yellow)';
+      const label = s >= 3600 ? `${Math.floor(s/3600)}h${Math.floor((s%3600)/60)}m`
+                    : s >= 60 ? `${Math.floor(s/60)}m${s%60}s`
+                    : `${s}s`;
+      secsLeftCell = `<span style="color:${color};font-size:9px;font-weight:600" title="seconds left until market close at the time of entry">${label}</span>`;
+    }
+    const rowStyle = t.blocked_by ? ' style="opacity:0.55"' : '';
+    rows += `<tr${rowStyle}>
+      <td style="color:var(--text3)">${when}</td>
+      <td>${modeBadge}</td>
+      <td><span class="type-badge type-${t.play_type}">${t.play_type}</span></td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${titleCell}</td>
+      <td><span class="p-dir ${dc}">${t.direction}</span></td>
+      <td style="color:var(--text2)">$${t.ask}</td>
+      <td style="color:var(--orange)">${t.prob}%</td>
+      <td>${secsLeftCell}</td>
+      <td><span class="${oc}">${ocTxt}</span></td>
+      <td style="color:var(--text2)">${stakeCell}</td>
+      <td>${pnl}</td>
+    </tr>`;
+  }
+  el.innerHTML = `<div class="paper-table-wrap"><table class="paper-table">
+    <thead><tr>
+      <th>TIME (UTC)</th><th>MODE</th><th>TYPE</th><th>MARKET</th><th>DIR</th>
+      <th>ENTRY</th><th>PROB</th><th>TIME LEFT</th><th>OUTCOME</th><th>STAKE</th><th>PnL</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// init
+runScan();
+autoTimer = setInterval(runScan, 30000);
+setInterval(pollBrain, 1500);
+loadPaperLog();
+setInterval(loadPaperLog, 15000);  // refresh paper log every 15s
+
+// Immediately refresh when tab becomes visible (browsers throttle timers in background tabs)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadPaperLog();
+});
+
+loadStrategyModes();
+initConvictionSlider();
+</script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="/">
+    <span class="mobile-nav-icon">📡</span>
+    SIGNALS
+  </a>
+  <a href="/algo-display">
+    <span class="mobile-nav-icon">⚙️</span>
+    ALGOS
+  </a>
+  <a href="/claude-picks" class="active">
+    <span class="mobile-nav-icon">🤖</span>
+    PICKS
+  </a>
+  <a href="/profile">
+    <span class="mobile-nav-icon">👤</span>
+    PROFILE
+  </a>
+</nav>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(()=>{}));
+}
+</script>
+</body>
+</html>

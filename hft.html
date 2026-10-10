@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ff6600">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>POLY//TERMINAL // HFT LAB</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap');
+:root{
+  --bg:#0a0a08;--bg2:#0f0f0c;--bg3:#141410;--bg4:#1a1a16;
+  --border:#2a2a22;--border2:#3a3a2e;
+  --orange:#ff6600;--orange-dim:rgba(255,102,0,0.15);
+  --green:#00c87a;--green-dim:rgba(0,200,122,0.12);
+  --red:#ff3b3b;--red-dim:rgba(255,59,59,0.12);
+  --blue:#3b8ee0;--blue-dim:rgba(59,142,224,0.12);
+  --yellow:#f5c518;--yellow-dim:rgba(245,197,24,0.10);
+  --cyan:#22d3ee;--cyan-dim:rgba(34,211,238,0.12);
+  --purple:#a855f7;--purple-dim:rgba(168,85,247,0.12);
+  --text:#e8e4d0;--text2:#a09880;--text3:#605848;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh;overflow-x:hidden;font-size:13px;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
+
+/* NAV */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:38px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.logo{font-size:13px;font-weight:700;letter-spacing:0.12em;color:var(--orange);text-decoration:none;}
+.nav-links{display:flex;gap:0;border-left:1px solid var(--border);}
+.nav-links a{padding:0 14px;height:38px;display:flex;align-items:center;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text2);text-decoration:none;border-right:1px solid var(--border);transition:all .15s;}
+.nav-links a:hover{background:var(--bg3);color:var(--text);}
+.nav-links a.active{background:var(--cyan-dim);color:var(--cyan);border-bottom:2px solid var(--cyan);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.live-badge{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--cyan);border:1px solid var(--cyan);padding:2px 8px;display:flex;align-items:center;gap:5px;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* LAYOUT */
+.main{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 38px);}
+
+/* SIDEBAR */
+/* 2026-05-23: sidebar now scrolls independently with mouse wheel (was overflow:hidden,
+   content below viewport was unreachable without zooming out). */
+.side-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);overflow-y:auto;overflow-x:hidden;}
+.side-panel::-webkit-scrollbar{width:6px;}
+.side-panel::-webkit-scrollbar-track{background:transparent;}
+.side-panel::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.22);border-radius:3px;}
+.side-panel::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.45);}
+.side-hdr{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.side-title{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--cyan);display:flex;align-items:center;gap:8px;}
+.side-sub{font-size:9px;color:var(--text3);margin-top:3px;}
+
+/* STAT TILES */
+/* 2026-05-23 sidebar grid + value fit: bankroll tile uses grid-column:span 3
+   so the row must have 3 columns. Tiles get min-width:0 + overflow:visible so
+   values don't clip after the legibility pass bumped fonts. PnL value uses
+   clamp() to auto-shrink on narrow sidebars without losing readability. */
+.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.stat-tile{padding:10px 14px;background:var(--bg2);min-width:0;overflow:visible;text-align:center;}
+.stat-tile:nth-child(3n+1),.stat-tile:nth-child(3n+2){border-right:1px solid var(--border);}
+.stat-grid .stat-value{
+  font-size:clamp(16px, 1.8vw + 0.6rem, 22px) !important;
+  white-space:nowrap;
+  overflow:visible;
+  letter-spacing:-0.02em;
+}
+.stat-label{font-size:8px;font-weight:700;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;}
+.stat-value{font-size:18px;font-weight:700;margin-top:3px;letter-spacing:-0.02em;}
+.stat-sub{font-size:9px;color:var(--text3);margin-top:1px;}
+.val-cyan{color:var(--cyan);}
+.val-green{color:var(--green);}
+.val-red{color:var(--red);}
+.val-yellow{color:var(--yellow);}
+.val-neutral{color:var(--text);}
+.val-dim{opacity:0.5;font-size:1rem!important;}
+
+/* STRATEGY BREAKDOWN */
+.strat-section{padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.strat-title{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text3);margin-bottom:8px;}
+.strat-row{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border:1px solid var(--border);margin-bottom:4px;background:var(--bg3);}
+.strat-name{font-size:9px;font-weight:700;letter-spacing:0.06em;}
+.strat-name.mom{color:var(--cyan);}
+.strat-name.fade{color:var(--yellow);}
+.strat-nums{font-size:9px;color:var(--text2);display:flex;gap:10px;}
+.strat-wr{font-size:10px;font-weight:700;}
+
+/* SCAN STATUS */
+.scan-status{padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.scan-row{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);padding:1px 0;}
+.scan-row span:last-child{color:var(--text2);}
+
+/* SETTINGS PANEL */
+.settings-section{padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.settings-title{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text3);margin-bottom:8px;}
+.mode-toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.mode-label{font-size:9px;font-weight:600;color:var(--text2);}
+.toggle-wrap{display:flex;border:1px solid var(--border);overflow:hidden;}
+.toggle-btn{padding:3px 10px;font-size:9px;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:all .15s;background:var(--bg3);color:var(--text3);border:none;outline:none;}
+.toggle-btn:first-child{border-right:1px solid var(--border);}
+.toggle-btn.active-paper{background:var(--yellow-dim);color:var(--yellow);}
+.toggle-btn.active-live{background:var(--green-dim);color:var(--green);}
+.wallet-warn{font-size:8px;color:var(--red);margin-top:3px;display:none;}
+.stake-row{display:flex;align-items:center;gap:6px;}
+.stake-label{font-size:9px;color:var(--text2);white-space:nowrap;}
+.stake-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 7px;width:64px;outline:none;}
+.stake-input:focus{border-color:var(--cyan);}
+.save-btn{background:var(--cyan-dim);border:1px solid var(--cyan);color:var(--cyan);font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;padding:3px 10px;cursor:pointer;transition:all .15s;}
+.save-btn:hover{background:var(--cyan);color:var(--bg);}
+.save-msg{font-size:8px;color:var(--green);margin-top:4px;display:none;}
+
+/* RL GATE PANEL */
+.rl-section{padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.rl-title{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.rl-title-arrow{font-size:9px;transition:transform .2s;}
+.rl-title-arrow.open{transform:rotate(90deg);}
+.rl-summary-row{display:grid;grid-template-columns:56px 28px 28px 28px 1fr;gap:4px;align-items:center;font-size:9px;padding:3px 0;border-bottom:1px solid var(--border);}
+.rl-summary-row:last-child{border-bottom:none;}
+.rl-name{font-weight:700;color:var(--text2);}
+.rl-blocked{color:var(--red);font-weight:700;text-align:center;}
+.rl-allowed{color:var(--green);font-weight:700;text-align:center;}
+.rl-exploring{color:var(--yellow);font-weight:700;text-align:center;}
+.rl-bar-wrap{height:4px;background:var(--bg3);border:1px solid var(--border);display:flex;overflow:hidden;}
+.rl-bar-blocked{background:var(--red);height:100%;}
+.rl-bar-allowed{background:var(--green);height:100%;}
+.rl-bar-explore{background:var(--yellow);height:100%;}
+.rl-detail{margin-top:6px;max-height:180px;overflow-y:auto;display:none;}
+.rl-detail.open{display:block;}
+.rl-state-row{display:grid;grid-template-columns:1fr 36px 24px;gap:4px;font-size:8px;padding:2px 4px;border-radius:2px;margin-bottom:1px;}
+.rl-state-row.blocked{background:rgba(239,68,68,0.08);}
+.rl-state-row.allowed{background:rgba(34,197,94,0.06);}
+.rl-state-row.exploring{background:rgba(234,179,8,0.06);}
+.rl-state-key{color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rl-state-q{text-align:right;font-weight:700;}
+.rl-state-q.neg{color:var(--red);}
+.rl-state-q.pos{color:var(--green);}
+.rl-state-n{text-align:right;color:var(--text3);}
+.rl-tab-bar{display:flex;gap:0;margin-bottom:5px;}
+.rl-tab{font-size:8px;font-weight:700;padding:2px 8px;cursor:pointer;border:1px solid var(--border);color:var(--text3);background:var(--bg3);letter-spacing:0.05em;}
+.rl-tab.active{background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan);}
+.rl-tab:not(:last-child){border-right:none;}
+
+/* LIVE FEED */
+.feed-section{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.feed-label{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text3);padding:8px 14px 6px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.feed-log{flex:1;overflow-y:auto;padding:6px 10px;font-size:9px;line-height:1.8;}
+.feed-log::-webkit-scrollbar{width:3px;}
+.feed-log::-webkit-scrollbar-thumb{background:var(--border2);}
+.feed-entry{display:flex;gap:6px;padding:1px 0;}
+.fe-ts{color:var(--text3);flex-shrink:0;min-width:44px;}
+.fe-msg{word-break:break-word;}
+.fe-msg.enter{color:var(--cyan);}
+.fe-msg.win{color:var(--green);}
+.fe-msg.loss{color:var(--red);}
+.fe-msg.scan{color:var(--text3);}
+
+/* MAIN AREA */
+.content{overflow-y:auto;padding:20px 24px;}
+.content::-webkit-scrollbar{width:4px;}
+.content::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.page-hdr{margin-bottom:16px;}
+.page-hdr h1{font-size:15px;font-weight:700;letter-spacing:0.1em;color:var(--cyan);}
+.page-hdr p{margin-top:4px;font-size:10px;color:var(--text2);line-height:1.6;}
+.paper-badge{display:inline-block;background:var(--yellow-dim);border:1px solid var(--yellow);color:var(--yellow);font-size:9px;font-weight:700;letter-spacing:0.08em;padding:2px 8px;margin-left:10px;vertical-align:middle;}
+
+/* TOP STATS ROW */
+.top-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px;}
+.ts-card{background:var(--bg2);border:1px solid var(--border);padding:12px 14px;}
+.ts-label{font-size:8px;font-weight:700;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;}
+.ts-val{font-size:22px;font-weight:700;margin-top:4px;letter-spacing:-0.02em;}
+.ts-sub{font-size:9px;color:var(--text3);margin-top:2px;}
+
+/* TRADES TABLE */
+.section-hdr{font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.tab-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:10px;}
+th{text-align:left;font-size:8px;font-weight:700;letter-spacing:0.08em;color:var(--text3);padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg2);text-transform:uppercase;}
+td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+tr:hover td{background:var(--bg3);}
+.badge{font-size:8px;font-weight:700;letter-spacing:0.06em;padding:2px 7px;border:1px solid;}
+.badge.mom{color:var(--cyan);border-color:var(--cyan);background:var(--cyan-dim);}
+.badge.fade{color:var(--yellow);border-color:var(--yellow);background:var(--yellow-dim);}
+.badge.up{color:var(--green);border-color:var(--green);background:var(--green-dim);}
+.badge.down{color:var(--red);border-color:var(--red);background:var(--red-dim);}
+.badge.win{color:var(--green);border-color:var(--green);background:var(--green-dim);}
+.badge.loss{color:var(--red);border-color:var(--red);background:var(--red-dim);}
+.badge.pending{color:var(--yellow);border-color:var(--yellow);background:var(--yellow-dim);}
+.pnl-pos{color:var(--green);font-weight:600;}
+.pnl-neg{color:var(--red);font-weight:600;}
+.pnl-pend{color:var(--text3);}
+.sym-cell{font-weight:700;color:var(--text);}
+.price-cell{font-variant-numeric:tabular-nums;}
+.secs-cell{color:var(--yellow);}
+.empty-state{text-align:center;padding:40px;color:var(--text3);font-size:11px;}
+.empty-state .es-icon{font-size:24px;margin-bottom:8px;opacity:0.4;}
+.empty-state p{margin-top:4px;font-size:9px;}
+
+/* TABS */
+.filter-tabs{display:flex;gap:0;border:1px solid var(--border);width:fit-content;margin-bottom:14px;}
+.ftab{padding:5px 14px;font-size:10px;font-weight:600;color:var(--text3);cursor:pointer;border-right:1px solid var(--border);transition:all .15s;}
+.ftab:last-child{border-right:none;}
+.ftab:hover{color:var(--text2);background:var(--bg3);}
+.ftab.active{background:var(--cyan-dim);color:var(--cyan);}
+
+@media(max-width:900px){
+  /* Stack side-panel above main on mobile — keeps strategy pills, scan status, settings visible */
+  .main{grid-template-columns:1fr;height:auto;grid-template-rows:auto auto;}
+  .side-panel{
+    border-right:none;
+    border-bottom:1px solid var(--border);
+    overflow:visible;
+    max-height:none;
+  }
+  /* Body and shell allow scroll */
+  body,html{height:auto;min-height:100vh;overflow-y:auto;}
+  .top-stats{grid-template-columns:repeat(3,1fr);}
+  /* Trade table needs horizontal scroll on phone-width */
+  .trade-area,.tab-wrap{overflow-x:auto;}
+  /* Topbar nav becomes wrappable so links don't crop */
+  .topbar{flex-wrap:wrap;height:auto;}
+  /* Strategy/symbol rows shrink slightly */
+  .strat-section{padding:8px 12px;}
+  .scan-status{padding:8px 12px;}
+  .settings-section{padding:8px 12px;}
+}
+@media(max-width:480px){
+  /* Phone-portrait: tighter still */
+  .top-stats{grid-template-columns:repeat(2,1fr);}
+  .strat-row{flex-wrap:wrap;gap:4px;}
+  .strat-nums{gap:4px;}
+  .topbar-left{flex-wrap:wrap;}
+  .nav-links{flex-wrap:wrap;}
+  .nav-links a{padding:0 10px;height:32px;font-size:10px;}
+}
+/* MOBILE SYMBOL PANEL — kept for backwards compatibility but hidden when side-panel
+   is now visible on mobile (it duplicates info already in side-panel symbol-wr-rows) */
+.mobile-sym-panel{display:none;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.mobile-sym-title{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+.mobile-sym-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.mobile-sym-card{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;display:flex;flex-direction:column;gap:4px;}
+.msym-top{display:flex;align-items:center;justify-content:space-between;}
+.msym-name{font-size:12px;font-weight:700;color:var(--text);}
+.msym-wr{font-size:13px;font-weight:700;}
+.msym-bot{display:flex;align-items:center;justify-content:space-between;}
+.msym-wl{font-size:9px;color:var(--text3);}
+.msym-pnl{font-size:9px;font-weight:700;}
+.sym-toggle{display:flex;align-items:center;gap:7px;margin-top:4px;}
+.sym-toggle-label{font-size:8px;font-weight:700;letter-spacing:0.06em;}
+.sym-pill{display:inline-flex;align-items:center;min-width:44px;height:22px;border-radius:11px;padding:0 8px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);font-size:9px;font-weight:700;letter-spacing:0.06em;color:var(--text3);transition:background .15s,border-color .15s,color .15s;-webkit-tap-highlight-color:transparent;user-select:none;}
+.sym-pill.on{background:rgba(0,200,122,0.18);border-color:var(--green);color:var(--green);}
+.sym-pill.auto-p{background:rgba(245,197,24,0.1);border-color:var(--yellow);color:var(--yellow);cursor:default;opacity:0.7;}
+</style>
+<link rel="stylesheet" href="/neuro.css">
+</head>
+<body>
+<script src="/neuro_particles.js"></script>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="/" class="logo">POLY//TERMINAL</a>
+    <nav class="nav-links">
+      <a href="/signals">SIGNALS</a>
+      <a href="/algo-display">ALGOS</a>
+      <a href="/claude-picks">CLAUDE PICKS</a>
+      <a href="/hft" class="active">HFT LAB</a>
+      <a href="/btc-hft">BTC ML</a>
+      <a href="/eth-hft">ETH ML</a>
+      <a href="/btc-hermes">BTC HERMES</a>
+      <a href="/profile">PROFILE</a>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <span id="topbar-balance" style="font-size:11px;font-weight:700;color:var(--text2,#888);letter-spacing:0.5px;">BAL: —</span>
+    <div class="live-badge" id="topbar-badge"><div class="live-dot"></div><span id="topbar-badge-text">PAPER ONLY</span></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="side-panel">
+    <div class="side-hdr">
+      <div class="side-title">
+        <div class="live-dot"></div>
+        HFT SCANNER
+      </div>
+      <div class="side-sub" id="side-mode-sub">5m market end-of-life strategies · paper mode</div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-tile">
+        <div class="stat-label">Total WR</div>
+        <div class="stat-value val-cyan" id="sb-wr">--</div>
+        <div class="stat-sub" id="sb-resolved">-- resolved</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Real WR ✓</div>
+        <div class="stat-value val-green" id="sb-real-wr">--</div>
+        <div class="stat-sub" id="sb-real-wr-sub">-- fills</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Total PnL</div>
+        <div class="stat-value" id="sb-pnl">--</div>
+        <div class="stat-sub" id="sb-trades">-- trades</div>
+      </div>
+      <div class="stat-tile" style="grid-column:span 3;">
+        <div class="stat-label">Bankroll (USDC + pUSD)</div>
+        <div class="stat-value val-green" id="sb-bankroll">--</div>
+        <div class="stat-sub" id="sb-bankroll-sub">live polygon balance</div>
+      </div>
+    </div>
+
+    <div class="strat-section">
+      <div class="strat-title">STRATEGY BREAKDOWN</div>
+      <div class="strat-row" id="sr-mom">
+        <span class="strat-name mom">MOMENTUM-BURST</span>
+        <div class="strat-nums">
+          <span id="mom-wl">--/--</span>
+          <span class="strat-wr val-cyan" id="mom-wr">--%</span>
+          <span id="mom-pnl" style="font-size:9px;font-weight:700;">$--</span>
+          <span class="sym-pill" id="strat-pill-MOMENTUM-BURST" onclick="evt_toggle_strategy(event,'MOMENTUM-BURST')" ontouchend="evt_toggle_strategy(event,'MOMENTUM-BURST')" style="height:18px;min-width:38px;font-size:8px;padding:0 6px;margin-left:4px;cursor:pointer">○ PAPER</span>
+        </div>
+      </div>
+      <div class="strat-row" id="sr-fade">
+        <span class="strat-name fade">EXTREME-RIDE</span>
+        <div class="strat-nums">
+          <span id="fade-wl">--/--</span>
+          <span class="strat-wr val-yellow" id="fade-wr">--%</span>
+          <span id="fade-pnl" style="font-size:9px;font-weight:700;">$--</span>
+          <span class="sym-pill" id="strat-pill-EXTREME-RIDE" onclick="evt_toggle_strategy(event,'EXTREME-RIDE')" ontouchend="evt_toggle_strategy(event,'EXTREME-RIDE')" style="height:18px;min-width:38px;font-size:8px;padding:0 6px;margin-left:4px;cursor:pointer">○ PAPER</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strat-section" id="symbol-wr-section" style="margin-top:6px;">
+      <div class="strat-title">SYMBOL WIN RATES <span id="sym-er-badge" style="display:none;font-size:9px;color:var(--yellow);font-weight:600;margin-left:6px;">ER=PAPER</span></div>
+      <div id="symbol-wr-rows"><!-- filled by JS --></div>
+    </div>
+
+    <div class="scan-status">
+      <div class="scan-row"><span>SCANS DONE</span><span id="ss-scans">--</span></div>
+      <div class="scan-row"><span>LAST SCAN</span><span id="ss-last">--</span></div>
+      <div class="scan-row"><span>PENDING</span><span id="ss-pending">--</span></div>
+      <div class="scan-row"><span>SCAN INTERVAL</span><span>4s</span></div>
+      <div class="scan-row"><span>REAL ORDERS</span><span id="ss-real">--</span></div>
+      <div class="scan-row"><span>FILL RATE</span><span id="ss-fill-rate" style="font-weight:700">--</span></div>
+      <div class="scan-row"><span>TODAY PAPER</span><span id="ss-today-paper-pnl" style="font-weight:700">--</span></div>
+      <div class="scan-row"><span>TODAY REAL</span><span id="ss-today-real-pnl" style="font-weight:700">--</span></div>
+      <div class="scan-row"><span>TODAY TOTAL</span><span id="ss-today-pnl" style="font-weight:700">--</span></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">TRADE SETTINGS</div>
+      <div class="mode-toggle-row">
+        <span class="mode-label">MODE</span>
+        <div class="toggle-wrap">
+          <button class="toggle-btn active-paper" id="btn-paper" onclick="setMode('paper')">PAPER</button>
+          <button class="toggle-btn" id="btn-live" onclick="setMode('live')">LIVE</button>
+        </div>
+      </div>
+      <div class="mode-toggle-row" style="margin-top:6px;">
+        <span class="mode-label" title="When ON: circuit-breaker, auto-pause, and auto-filter are bypassed. Your live_mode stays where you set it. Manual paper_symbols/paper_strategies still apply.">PROT.OVRD</span>
+        <div class="toggle-wrap">
+          <button class="toggle-btn" id="btn-prot-off" onclick="setProtectionOverride(false)">OFF</button>
+          <button class="toggle-btn" id="btn-prot-on" onclick="setProtectionOverride(true)" style="border-color:var(--red,#f55);color:var(--red,#f55);">ON</button>
+        </div>
+      </div>
+      <div class="wallet-warn" id="wallet-warn">⚠ Wallet not connected</div>
+      <div class="stake-row">
+        <span class="stake-label">STAKE $</span>
+        <input class="stake-input" id="stake-input" type="number" min="1" max="500" step="0.5" value="5.00">
+        <button class="save-btn" onclick="saveSettings()">SAVE</button>
+      </div>
+      <div class="stake-row" style="margin-top:6px;">
+        <span class="stake-label">SIZING</span>
+        <button class="toggle-btn" id="btn-size-kelly" onclick="setSizingMode('kelly')" title="RL-Kelly sizing (scaled by edge, capped at your STAKE)">KELLY</button>
+        <button class="toggle-btn" id="btn-size-fixed" onclick="setSizingMode('fixed')" title="Bet exactly your STAKE on every entry">FIXED $</button>
+      </div>
+      <div class="save-msg" id="save-msg">✓ Saved</div>
+    </div>
+
+    <!-- RL GATE PANEL -->
+    <div class="rl-section">
+      <div class="rl-title" onclick="toggleRlDetail()">
+        <span>RL GATE STATUS</span>
+        <span class="rl-title-arrow" id="rl-arrow">▶</span>
+      </div>
+      <div id="rl-summary">
+        <!-- filled by JS -->
+        <div style="font-size:9px;color:var(--text3);">Loading...</div>
+      </div>
+      <div class="rl-detail" id="rl-detail">
+        <div class="rl-tab-bar">
+          <div class="rl-tab active" id="rlt-hft"   onclick="switchRlTab('hft')">HFT</div>
+          <div class="rl-tab"        id="rlt-manip"  onclick="switchRlTab('manip')">MANIP</div>
+          <div class="rl-tab"        id="rlt-picks"  onclick="switchRlTab('picks')">PICKS</div>
+          <div class="rl-tab"        id="rlt-filter" onclick="cycleRlFilter()" style="margin-left:4px;">🚫 BLOCKED</div>
+        </div>
+        <div id="rl-state-list"></div>
+      </div>
+    </div>
+
+    <div class="feed-section">
+      <div class="feed-label">RECENT ENTRIES</div>
+      <div class="feed-log" id="feed-log">
+        <div class="feed-entry"><span class="fe-ts">--:--</span><span class="fe-msg scan">Waiting for scanner...</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <div class="page-hdr">
+      <h1>HFT LAB <span class="paper-badge" id="page-mode-badge">PAPER TRADING</span></h1>
+      <p>Scanning 5-minute Polymarket markets in their final 20-120 seconds. Two micro-strategies: <strong style="color:var(--cyan)">MOMENTUM-BURST</strong> (ride late momentum) and <strong style="color:var(--yellow)">EXTREME-RIDE</strong> (ride sustained 75–90¢ extremes).</p>
+    </div>
+
+    <!-- TOP STATS ROW -->
+    <div class="top-stats" style="grid-template-columns:repeat(6,1fr);">
+      <div class="ts-card">
+        <div class="ts-label">Total Trades</div>
+        <div class="ts-val val-cyan" id="ts-total">0</div>
+        <div class="ts-sub" id="ts-entries-sub">paper entries</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Win Rate</div>
+        <div class="ts-val" id="ts-wr">--%</div>
+        <div class="ts-sub" id="ts-wr-sub">-- resolved</div>
+      </div>
+      <div class="ts-card" style="border:1px solid var(--green);border-radius:6px;">
+        <div class="ts-label" style="color:var(--green)">Real PnL ✓</div>
+        <div class="ts-val" id="ts-real-pnl">$0.00</div>
+        <div class="ts-sub" id="ts-real-pnl-sub">confirmed fills only</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Paper PnL</div>
+        <div class="ts-val" id="ts-pnl" style="font-size:1.1rem">$0.00</div>
+        <div class="ts-sub" id="ts-pnl-sub">all trades est.</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Real WR</div>
+        <div class="ts-val" id="ts-real-wr">--%</div>
+        <div class="ts-sub" id="ts-real-wr-sub">filled only</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Volume Traded</div>
+        <div class="ts-val val-yellow" id="ts-volume">$0</div>
+        <div class="ts-sub">total staked</div>
+      </div>
+    </div>
+
+    <!-- MOBILE SYMBOL WIN RATES + TOGGLES (hidden on desktop) -->
+    <div class="mobile-sym-panel">
+      <div class="mobile-sym-title">SYMBOL WIN RATES &amp; AUTO-BUY</div>
+      <div class="mobile-sym-grid" id="mobile-sym-grid"><!-- filled by JS --></div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
+      <div class="ftab active" data-filter="all">ALL</div>
+      <div class="ftab" data-filter="pending">PENDING</div>
+      <div class="ftab" data-filter="won">WINS</div>
+      <div class="ftab" data-filter="lost">LOSSES</div>
+      <div class="ftab" data-filter="mom">MOMENTUM-BURST</div>
+      <div class="ftab" data-filter="fade">EXTREME-RIDE</div>
+    </div>
+
+    <!-- TRADES TABLE -->
+    <div class="section-hdr" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span id="table-mode-label">PAPER TRADES</span>
+      <span id="table-count" style="color:var(--text3);font-size:9px;font-weight:400;">-- entries</span>
+      <!-- 2026-05-17: lifetime view toggle. CURRENT = mode-filtered active file (default).
+           LIFETIME = deduped merge of all current + backup files (8000+ trades). -->
+      <span style="margin-left:auto;display:flex;gap:4px;align-items:center;">
+        <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:.05em;">VIEW:</span>
+        <button class="toggle-btn active-paper" id="btn-view-current" onclick="setView('current')" style="font-size:9px;padding:3px 8px;">CURRENT</button>
+        <button class="toggle-btn" id="btn-view-lifetime" onclick="setView('lifetime')" style="font-size:9px;padding:3px 8px;">LIFETIME</button>
+        <button class="save-btn" id="btn-refresh-lifetime" onclick="refreshLifetime()" style="font-size:8px;padding:3px 8px;display:none;">⟳ REFRESH</button>
+        <span id="lifetime-snapshot-ts" style="font-size:8px;color:var(--text3);"></span>
+      </span>
+    </div>
+    <div class="tab-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Symbol</th>
+            <th>Strategy</th>
+            <th>Dir</th>
+            <th>Entry$</th>
+            <th>Secs</th>
+            <th>Stake</th>
+            <th>Status</th>
+            <th>PnL</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody id="trades-tbody">
+          <tr><td colspan="10" class="empty-state">
+            <div class="es-icon">⚡</div>
+            <div>No HFT paper trades yet</div>
+            <p>Scanner runs every 8s — first trades appear when a 5m market enters its final 2 minutes</p>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- GRID SEARCH BACKTEST -->
+    <div style="margin-top:24px;">
+      <div class="section-hdr">
+        <span>GRID SEARCH BACKTEST</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="bt-status" style="font-size:9px;color:var(--text3);">--</span>
+          <button id="bt-run-btn" onclick="runBacktest()" style="background:var(--cyan-dim);border:1px solid var(--cyan);color:var(--cyan);font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;padding:4px 14px;cursor:pointer;">&#9654; RUN</button>
+          <button id="bt-max-btn" onclick="runMaxBacktest()" title="Exhaustive 4-variable combo search + auto-recommend symbol_overrides" style="background:#5a1a2a;border:1px solid #e53;color:#ff7a8c;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.06em;padding:4px 14px;cursor:pointer;margin-left:4px;">&#9889; MAX</button>
+        </div>
+      </div>
+
+      <!-- filter controls -->
+      <div id="bt-controls" style="display:none;margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <div style="font-size:9px;color:var(--text3);">SORT:</div>
+        <div class="filter-tabs" style="margin-bottom:0;">
+          <div class="ftab active" id="bt-sort-edge"  onclick="btSort('edge')">EDGE</div>
+          <div class="ftab"        id="bt-sort-wr"    onclick="btSort('wr')">WIN RATE</div>
+          <div class="ftab"        id="bt-sort-pnl"   onclick="btSort('total_pnl')">PnL</div>
+          <div class="ftab"        id="bt-sort-sharpe" onclick="btSort('sharpe')">SHARPE</div>
+        </div>
+        <div style="font-size:9px;color:var(--text3);margin-left:8px;">FILTER:</div>
+        <div class="filter-tabs" style="margin-bottom:0;">
+          <div class="ftab active" id="bt-f-all"  onclick="btFilter('all')">ALL</div>
+          <div class="ftab"        id="bt-f-pos"  onclick="btFilter('pos')">EDGE+</div>
+          <div class="ftab"        id="bt-f-neg"  onclick="btFilter('neg')">EDGE-</div>
+        </div>
+        <input id="bt-search" placeholder="filter combo..." style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;outline:none;width:160px;" oninput="renderBtTable()">
+      </div>
+
+      <!-- baseline row -->
+      <div id="bt-baseline" style="display:none;background:var(--bg3);border:1px solid var(--border2);padding:8px 12px;margin-bottom:8px;font-size:9px;color:var(--text2);">
+        Baseline (all trades): <span id="bt-base-stats"></span>
+      </div>
+
+      <!-- MAX recommendations panel — shows only after MAX run.
+           Moved ABOVE the combo table 2026-05-22 so the actionable cells (promote / quarantine / override)
+           are visible immediately instead of buried under hundreds-of-rows combo grid. -->
+      <div id="bt-max-recs" style="display:none;margin-bottom:16px;border-bottom:1px dashed var(--border2);padding-bottom:12px;">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:.08em;margin-bottom:8px;">MAX RECOMMENDATIONS (n&ge;15 per cell)</div>
+        <div id="bt-recs-promote" style="margin-bottom:12px;"></div>
+        <div id="bt-recs-quarantine" style="margin-bottom:12px;"></div>
+        <div id="bt-cell-overrides"></div>
+        <div id="bt-rl-blocked"></div>
+      </div>
+
+      <div class="tab-wrap" id="bt-table-wrap" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>COMBO</th>
+              <th>N</th>
+              <th>WIN RATE</th>
+              <th>BREAK-EVEN</th>
+              <th>EDGE</th>
+              <th>TOTAL PnL</th>
+              <th>AVG PnL</th>
+              <th>SHARPE</th>
+              <th>OVERRIDE</th>
+            </tr>
+          </thead>
+          <tbody id="bt-tbody"></tbody>
+        </table>
+      </div>
+      <div id="bt-empty" style="text-align:center;padding:24px;font-size:10px;color:var(--text3);display:none;">
+        Click RUN to execute grid search over all resolved trades
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allTrades = [];
+let activeFilter = 'all';
+let currentMode = 'paper';   // 'paper' | 'live'
+let walletLive = false;
+let _modeSaving = false;     // suppresses poll-driven UI revert while a mode save is in flight
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const r = await fetch('/api/hft-settings');
+    const s = await r.json();
+    walletLive = !!s.wallet_live;
+    applyModeUI(s.live_mode ? 'live' : 'paper');
+    document.getElementById('stake-input').value = Number(s.stake || 5).toFixed(2);
+    applySizingUI(s.sizing_mode || 'kelly');
+    if (!walletLive) document.getElementById('wallet-warn').style.display = 'block';
+    else document.getElementById('wallet-warn').style.display = 'none';
+    if (typeof _syncStrategyPills === 'function') _syncStrategyPills(s);
+  } catch(e) { console.error('Settings load error:', e); }
+  loadProtectionOverride();
+}
+
+// ── Protection Override toggle ───────────────────────────────────────────────
+async function loadProtectionOverride() {
+  try {
+    const r = await fetch('/api/protection-override');
+    const s = await r.json();
+    applyProtUI(!!s.hft);
+  } catch(e) { console.error('Protection override load error:', e); }
+}
+function applyProtUI(on) {
+  const off = document.getElementById('btn-prot-off');
+  const onb = document.getElementById('btn-prot-on');
+  if (!off || !onb) return;
+  off.className = 'toggle-btn' + (on ? '' : ' active-paper');
+  onb.className = 'toggle-btn' + (on ? ' active-live' : '');
+}
+async function setProtectionOverride(on) {
+  try {
+    const r = await fetch('/api/protection-override', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({scanner: 'hft', on: !!on}),
+    });
+    const s = await r.json();
+    if (s.error) { alert('Error: ' + s.error); return; }
+    applyProtUI(!!s.hft);
+  } catch(e) { console.error('Protection override save error:', e); }
+}
+
+// ── Sizing mode toggle (KELLY / FIXED) ───────────────────────────────────────
+function applySizingUI(mode) {
+  const k  = document.getElementById('btn-size-kelly');
+  const fx = document.getElementById('btn-size-fixed');
+  if (!k || !fx) return;
+  k.className  = 'toggle-btn' + (mode === 'kelly' ? ' active-live'  : '');
+  fx.className = 'toggle-btn' + (mode === 'fixed' ? ' active-paper' : '');
+}
+async function setSizingMode(mode) {
+  applySizingUI(mode);  // optimistic
+  try {
+    const r = await fetch('/api/hft-settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({sizing_mode: mode}),
+    });
+    const s = await r.json();
+    if (s.error) { alert('Error: ' + s.error); applySizingUI(s.sizing_mode || 'kelly'); return; }
+    applySizingUI(s.sizing_mode || 'kelly');
+    const msg = document.getElementById('save-msg');
+    if (msg) { msg.style.display = 'block'; setTimeout(() => { msg.style.display = 'none'; }, 1500); }
+  } catch(e) { console.error('Sizing mode save error:', e); }
+}
+
+function applyModeUI(mode) {
+  currentMode = mode;
+  const btnP = document.getElementById('btn-paper');
+  const btnL = document.getElementById('btn-live');
+  btnP.className = 'toggle-btn' + (mode === 'paper' ? ' active-paper' : '');
+  btnL.className = 'toggle-btn' + (mode === 'live'  ? ' active-live'  : '');
+
+  const isLive = mode === 'live';
+  // Topbar badge
+  const badge = document.getElementById('topbar-badge');
+  badge.style.color = isLive ? 'var(--green)' : 'var(--cyan)';
+  badge.style.borderColor = isLive ? 'var(--green)' : 'var(--cyan)';
+  badge.querySelector('.live-dot').style.background = isLive ? 'var(--green)' : 'var(--cyan)';
+  document.getElementById('topbar-badge-text').textContent = isLive ? 'LIVE TRADING' : 'PAPER ONLY';
+  // Page header badge
+  const pb = document.getElementById('page-mode-badge');
+  pb.textContent = isLive ? 'LIVE TRADING' : 'PAPER TRADING';
+  pb.style.background = isLive ? 'var(--green-dim)' : 'var(--yellow-dim)';
+  pb.style.borderColor = isLive ? 'var(--green)' : 'var(--yellow)';
+  pb.style.color = isLive ? 'var(--green)' : 'var(--yellow)';
+  // Sidebar sub
+  document.getElementById('side-mode-sub').textContent =
+    isLive ? '5m market end-of-life strategies · LIVE mode' : '5m market end-of-life strategies · paper mode';
+  // Table label + card sub
+  document.getElementById('table-mode-label').textContent = isLive ? 'LIVE TRADES' : 'PAPER TRADES';
+  document.getElementById('ts-entries-sub').textContent = isLive ? 'live entries' : 'paper entries';
+}
+
+async function setMode(mode) {
+  if (mode === currentMode) return;
+  if (mode === 'live' && !walletLive) {
+    document.getElementById('wallet-warn').style.display = 'block';
+    return;
+  }
+  const prevMode = currentMode;
+  applyModeUI(mode);            // optimistic flip
+  _modeSaving = true;           // block refresh() from clobbering us mid-save
+  try {
+    const r = await fetch('/api/hft-settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({live_mode: mode === 'live'}),
+    });
+    const d = await r.json();
+    if (d.error) {
+      alert('Error: ' + d.error);
+      applyModeUI(prevMode);    // revert
+      return;
+    }
+    applyModeUI(d.live_mode ? 'live' : 'paper');  // confirm with server truth
+    const msg = document.getElementById('save-msg');
+    if (msg) {
+      msg.style.display = 'block';
+      setTimeout(() => { msg.style.display = 'none'; }, 1500);
+    }
+  } catch(e) {
+    console.error('Mode save error:', e);
+    applyModeUI(prevMode);
+  } finally {
+    _modeSaving = false;
+  }
+}
+
+async function saveSettings() {
+  const stake = parseFloat(document.getElementById('stake-input').value);
+  if (isNaN(stake) || stake < 1 || stake > 500) {
+    alert('Stake must be between $1 and $500');
+    return;
+  }
+  const live_mode = currentMode === 'live';
+  try {
+    const r = await fetch('/api/hft-settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({live_mode, stake}),
+    });
+    const data = await r.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const msg = document.getElementById('save-msg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2500);
+  } catch(e) { console.error('Save error:', e); }
+}
+
+function fmt_time(iso) {
+  if (!iso) return '--:--';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US', {hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+function fmt_ts_short(iso) {
+  if (!iso) return '--';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US', {hour12: false, hour:'2-digit', minute:'2-digit'});
+}
+
+function pnl_class(pnl, resolved) {
+  if (!resolved) return 'pnl-pend';
+  return pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+}
+
+function pnl_str(pnl, resolved) {
+  if (!resolved || pnl === null || pnl === undefined) return '—';
+  return (pnl >= 0 ? '+' : '') + '$' + Number(pnl).toFixed(2);
+}
+
+function apply_filter(trades) {
+  switch(activeFilter) {
+    case 'pending': return trades.filter(t => !t.resolved);
+    case 'won':     return trades.filter(t => t.outcome === 'WIN');
+    case 'lost':    return trades.filter(t => t.outcome === 'LOSS');
+    case 'mom':     return trades.filter(t => t.strategy === 'MOMENTUM-BURST');
+    case 'fade':    return trades.filter(t => t.strategy === 'EXTREME-RIDE');
+    default:        return trades;
+  }
+}
+
+function render_trades(trades) {
+  const tbody = document.getElementById('trades-tbody');
+  const filtered = apply_filter(trades);
+  document.getElementById('table-count').textContent = filtered.length + ' entries';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">
+      <div class="es-icon">⚡</div>
+      <div>No trades match this filter</div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(t => {
+    const strat_cls = t.strategy === 'MOMENTUM-BURST' ? 'mom' : 'fade';
+    const strat_label = t.strategy === 'MOMENTUM-BURST' ? 'MOM' : 'RIDE';
+    const dir_cls   = t.direction === 'UP' ? 'up' : 'down';
+    const dir_sym   = t.direction === 'UP' ? '▲ UP' : '▼ DN';
+    let status_html;
+    if (!t.resolved) {
+      status_html = '<span class="badge pending">PENDING</span>';
+    } else if (t.outcome === 'WIN') {
+      status_html = '<span class="badge win">WIN</span>';
+    } else {
+      status_html = '<span class="badge loss">LOSS</span>';
+    }
+    const pnl_html = `<span class="${pnl_class(t.paper_pnl, t.resolved)}">${pnl_str(t.paper_pnl, t.resolved)}</span>`;
+    const reason = (t.reason || '').substring(0, 45) + ((t.reason||'').length > 45 ? '…' : '');
+    // Mode badge: REAL ✓ (filled), REAL ✗ (attempted, didn't fill), or PAPER
+    let mode_badge;
+    if (t.real_trade && t.fill_confirmed === true) {
+      mode_badge = '<span class="badge" style="color:var(--green);border-color:var(--green);background:var(--green-dim);margin-left:3px;font-size:8px;font-weight:700;">REAL ✓</span>';
+    } else if (t.real_trade && t.fill_confirmed === false) {
+      mode_badge = '<span class="badge" style="color:var(--red,#e53);border-color:var(--red,#e53);background:rgba(229,83,83,0.1);margin-left:3px;font-size:8px;font-weight:700;" title="Real order placed but did not fill (GTC expired)">REAL ✗</span>';
+    } else if (t.real_trade) {
+      mode_badge = '<span class="badge" style="color:var(--yellow);border-color:var(--yellow);background:rgba(255,200,0,0.1);margin-left:3px;font-size:8px;font-weight:700;" title="Real order placed, fill status pending">REAL ?</span>';
+    } else {
+      mode_badge = '<span class="badge" style="color:var(--yellow);border-color:var(--yellow);background:rgba(255,200,0,0.08);margin-left:3px;font-size:8px;font-weight:700;">PAPER</span>';
+    }
+    const real_badge = mode_badge;
+    const tf_label = (t.market_slug||'').includes('-updown-15m-') ? '15m' : '5m';
+    const tf_badge = `<span style="font-size:8px;font-weight:700;color:var(--cyan);opacity:0.7;margin-left:3px;">${tf_label}</span>`;
+    return `<tr>
+      <td>${fmt_time(t.logged_at)}</td>
+      <td class="sym-cell"><a href="https://polymarket.com/event/${t.market_slug||''}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dotted var(--cyan);" title="${t.market_slug||''}">${t.symbol || '--'}</a>${tf_badge}${real_badge}</td>
+      <td><span class="badge ${strat_cls}">${strat_label}</span></td>
+      <td><span class="badge ${dir_cls}">${dir_sym}</span></td>
+      <td class="price-cell">$${Number(t.entry_price||0).toFixed(3)}</td>
+      <td class="secs-cell">${t.secs_to_close || '--'}s</td>
+      <td>$${Number(t.stake||5).toFixed(2)}</td>
+      <td>${status_html}</td>
+      <td>${pnl_html}</td>
+      <td style="color:var(--text3);font-size:9px;">${reason}</td>
+    </tr>`;
+  }).join('');
+}
+
+function update_sidebar(stats, trades) {
+  const isLive = stats.live_mode;
+
+  // Total WR — all trades (paper + live combined)
+  const wr = stats.win_rate || 0;
+  const wrEl = document.getElementById('sb-wr');
+  wrEl.textContent = wr + '%';
+  wrEl.className = 'stat-value ' + (wr >= 55 ? 'val-green' : wr >= 45 ? 'val-yellow' : wr > 0 ? 'val-red' : 'val-cyan');
+  document.getElementById('sb-resolved').textContent = (stats.resolved || 0) + ' resolved';
+
+  // Real WR — confirmed fills only
+  const realWr = stats.real_wr || 0;
+  const realWrEl = document.getElementById('sb-real-wr');
+  realWrEl.textContent = realWr > 0 ? realWr + '%' : '--%';
+  realWrEl.className = 'stat-value ' + (realWr >= 55 ? 'val-green' : realWr >= 45 ? 'val-yellow' : realWr > 0 ? 'val-red' : 'val-neutral');
+  document.getElementById('sb-real-wr-sub').textContent = (stats.filled_trades || 0) + ' fills';
+
+  // PnL — show real PnL (confirmed fills); sub-label shows total est.
+  const realPnlSide = stats.real_pnl || 0;
+  const totalPnlSide = stats.total_pnl || 0;
+  const pnl = isLive ? realPnlSide : totalPnlSide;
+  const pnlEl = document.getElementById('sb-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Number(pnl).toFixed(2);
+  pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'val-green' : 'val-red');
+  const tradesLabel = isLive
+    ? (stats.real_trades || 0) + ' real orders'
+    : (stats.total_trades || 0) + ' trades';
+  document.getElementById('sb-trades').textContent = tradesLabel;
+
+  // Strategy breakdown
+  const mb = (stats.strategies || {})['MOMENTUM-BURST'] || {};
+  const fd = (stats.strategies || {})['EXTREME-RIDE'] || {};
+  document.getElementById('mom-wl').textContent = (mb.wins||0) + '/' + (mb.losses||0);
+  document.getElementById('mom-wr').textContent = (mb.win_rate||0) + '%';
+  const momPnl = mb.pnl || 0;
+  const momPnlEl = document.getElementById('mom-pnl');
+  momPnlEl.textContent = (momPnl >= 0 ? '+' : '') + '$' + momPnl.toFixed(2);
+  momPnlEl.style.color = momPnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('fade-wl').textContent = (fd.wins||0) + '/' + (fd.losses||0);
+  document.getElementById('fade-wr').textContent = (fd.win_rate||0) + '%';
+  const fadePnl = fd.pnl || 0;
+  const fadePnlEl = document.getElementById('fade-pnl');
+  fadePnlEl.textContent = (fadePnl >= 0 ? '+' : '') + '$' + fadePnl.toFixed(2);
+  fadePnlEl.style.color = fadePnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Scan status
+  document.getElementById('ss-scans').textContent = stats.scan_count || 0;
+  document.getElementById('ss-pending').textContent = stats.pending || 0;
+  if (stats.last_scan_ts && stats.last_scan_ts > 0) {
+    const ago = Math.round((Date.now()/1000) - stats.last_scan_ts);
+    document.getElementById('ss-last').textContent = ago + 's ago';
+  } else {
+    document.getElementById('ss-last').textContent = 'live';
+  }
+
+  // Fill rate (real orders only)
+  const realOrders = stats.real_trades || 0;
+  const filledOrders = stats.filled_trades || 0;
+  const fillRate = stats.fill_rate || 0;
+  document.getElementById('ss-real').textContent = realOrders > 0
+    ? `${filledOrders}/${realOrders} filled` : '--';
+  const fillEl = document.getElementById('ss-fill-rate');
+  fillEl.textContent = realOrders > 0 ? fillRate + '%' : '--';
+  fillEl.style.color = fillRate >= 65 ? 'var(--green)' : fillRate >= 40 ? 'var(--yellow)' : realOrders > 0 ? 'var(--red)' : '';
+
+  // Today PnL rows (UTC day) — split into paper, real (filled only), and total
+  function _renderTodayCell(id, pnl, n, wr) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (n > 0 && pnl != null) {
+      const wrStr = wr != null ? ' ' + wr + '%' : '';
+      el.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2) + ' (' + n + 't' + wrStr + ')';
+      el.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    } else {
+      el.textContent = '--';
+      el.style.color = '';
+    }
+  }
+  _renderTodayCell('ss-today-paper-pnl', stats.today_paper_pnl, stats.today_paper_resolved || 0, stats.today_paper_wr);
+  _renderTodayCell('ss-today-real-pnl',  stats.today_real_pnl,  stats.today_real_resolved  || 0, stats.today_real_wr);
+  _renderTodayCell('ss-today-pnl',       stats.today_pnl,       stats.today_resolved       || 0, stats.today_wr);
+
+  // EXTREME-RIDE paper badge
+  const erPaperStrats = stats.paper_strategies || [];
+  const erBadge = document.getElementById('sym-er-badge');
+  if (erBadge) erBadge.style.display = erPaperStrats.includes('EXTREME-RIDE') ? '' : 'none';
+
+  // Per-symbol WR table — paper+real combined as primary, real-only fills as secondary line
+  const bySymbol = stats.by_symbol || {};
+  const bySymbolReal = stats.by_symbol_real || {};
+  const symRows = document.getElementById('symbol-wr-rows');
+  if (symRows && Object.keys(bySymbol).length) {
+    const sorted = Object.entries(bySymbol).sort((a, b) => b[1].pnl - a[1].pnl);
+    const autoPapered = stats.auto_papered || [];
+    const paperSyms  = stats.paper_symbols || [];
+    const isLive     = !!stats.live_mode;
+    symRows.innerHTML = sorted.map(([sym, d]) => {
+      const wr = d.win_rate || 0;
+      const pnl = d.pnl || 0;
+      const wrColor = wr >= 80 ? 'var(--green)' : wr >= 60 ? 'var(--cyan)' : wr >= 45 ? 'var(--yellow)' : 'var(--red)';
+      const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+      const isAutoPapered = autoPapered.some(k => k.startsWith(sym + '_'));
+      const isManualPapered = paperSyms.includes(sym);
+      const paperTag = isAutoPapered
+        ? `<span style="font-size:7px;font-weight:700;color:var(--yellow);margin-left:3px;opacity:0.85">AUTO-PAPER</span>`
+        : '';
+      const isOn = isLive && !isManualPapered;
+      const pillClass = isOn ? 'sym-pill on' : 'sym-pill';
+      const pillLabel = isOn ? '● LIVE' : '○ PAPER';
+      const onclick = `ontouchend="evt_toggle(event,'${sym}')" onclick="evt_toggle(event,'${sym}')"`;
+
+      // Real-fill stats (confirmed-fill subset only — wallet truth)
+      const r = bySymbolReal[sym];
+      let realLine = '';
+      if (r && (r.wins + r.losses) > 0) {
+        const rWr = r.win_rate || 0;
+        const rPnl = r.pnl || 0;
+        const rWrColor = rWr >= 80 ? 'var(--green)' : rWr >= 60 ? 'var(--cyan)' : rWr >= 45 ? 'var(--yellow)' : 'var(--red)';
+        const rPnlColor = rPnl >= 0 ? 'var(--green)' : 'var(--red)';
+        realLine = `
+          <div style="font-size:8px;color:var(--text3);padding:1px 0 0 6px;letter-spacing:0.05em;">
+            REAL FILLS:
+            <span style="color:var(--text2);">${r.wins}W/${r.losses}L</span>
+            <span style="color:${rWrColor};font-weight:700;">${rWr}%</span>
+            <span style="color:${rPnlColor};font-weight:700;">${rPnl >= 0 ? '+' : ''}$${rPnl.toFixed(0)}</span>
+          </div>`;
+      } else {
+        realLine = `<div style="font-size:8px;color:var(--text3);padding:1px 0 0 6px;opacity:0.5;">REAL FILLS: none yet</div>`;
+      }
+
+      return `<div class="strat-row" style="flex-direction:column;align-items:stretch;padding:4px 8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+          <span class="strat-name" style="color:var(--text1);min-width:46px">${sym}${paperTag}</span>
+          <div class="strat-nums" style="align-items:center">
+            <span style="font-size:9px;color:var(--text2)">${d.wins}W/${d.losses}L</span>
+            <span style="font-size:11px;font-weight:700;color:${wrColor}">${wr}%</span>
+            <span style="font-size:9px;font-weight:700;color:${pnlColor}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(0)}</span>
+            <span class="${pillClass}" id="sym-pill-d-${sym}" style="height:18px;min-width:38px;font-size:8px;padding:0 6px" ${onclick}>${pillLabel}</span>
+          </div>
+        </div>
+        ${realLine}
+      </div>`;
+    }).join('');
+  }
+
+  // Feed log — recent 15 entries
+  const recent = [...trades].sort((a,b) => (b.logged_at||'').localeCompare(a.logged_at||'')).slice(0,15);
+  const feedEl = document.getElementById('feed-log');
+  if (recent.length === 0) {
+    feedEl.innerHTML = '<div class="feed-entry"><span class="fe-ts">--:--</span><span class="fe-msg scan">Waiting for signals...</span></div>';
+  } else {
+    feedEl.innerHTML = recent.map(t => {
+      const cls = !t.resolved ? 'enter' : (t.outcome === 'WIN' ? 'win' : 'loss');
+      const strat = t.strategy === 'MOMENTUM-BURST' ? 'MOM' : 'FADE';
+      const dir = t.direction === 'UP' ? '▲' : '▼';
+      const pnl = t.resolved ? ` ${t.paper_pnl >= 0 ? '+' : ''}$${Number(t.paper_pnl).toFixed(2)}` : '';
+      return `<div class="feed-entry">
+        <span class="fe-ts">${fmt_ts_short(t.logged_at)}</span>
+        <span class="fe-msg ${cls}">${strat} ${t.symbol} <span style="font-size:8px;opacity:0.65;">${(t.market_slug||'').includes('-updown-15m-') ? '15m' : '5m'}</span> ${dir}${pnl}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function update_top_stats(stats) {
+  document.getElementById('ts-total').textContent = stats.total_trades || 0;
+  // Show snapshot age in lifetime view
+  const snapEl = document.getElementById('lifetime-snapshot-ts');
+  if (snapEl) {
+    if (currentView === 'lifetime' && stats.snapshot_mtime) {
+      const dt = new Date(stats.snapshot_mtime);
+      const age_min = Math.floor((Date.now() - dt.getTime()) / 60000);
+      snapEl.textContent = `(snapshot ${age_min}m old)`;
+    } else {
+      snapEl.textContent = '';
+    }
+  }
+  const wr = stats.win_rate || 0;
+  const wrEl = document.getElementById('ts-wr');
+  wrEl.textContent = wr + '%';
+  wrEl.className = 'ts-val ' + (wr >= 55 ? 'val-green' : wr >= 45 ? 'val-yellow' : wr > 0 ? 'val-red' : 'val-neutral');
+  document.getElementById('ts-wr-sub').textContent = (stats.resolved||0) + ' resolved';
+
+  // Real PnL — confirmed fills only (accurate wallet figure)
+  const isLiveMode = !!stats.live_mode;
+  const realPnl = stats.real_pnl || 0;
+  const realPnlEl = document.getElementById('ts-real-pnl');
+  realPnlEl.textContent = (realPnl >= 0 ? '+' : '') + '$' + Number(realPnl).toFixed(2);
+  realPnlEl.className = 'ts-val ' + (realPnl >= 0 ? 'val-green' : 'val-red');
+  const filled  = stats.filled_trades || 0;
+  const pending = stats.pending_fill  || 0;
+  const subTxt  = filled + ' confirmed fills' + (pending > 0 ? '  ·  ' + pending + ' pending' : '');
+  document.getElementById('ts-real-pnl-sub').textContent = subTxt;
+
+  // Real WR — confirmed fills only
+  const realWr = stats.real_wr || 0;
+  const realWrEl = document.getElementById('ts-real-wr');
+  realWrEl.textContent = realWr > 0 ? realWr + '%' : '--%';
+  realWrEl.className = 'ts-val ' + (realWr >= 55 ? 'val-green' : realWr >= 45 ? 'val-yellow' : realWr > 0 ? 'val-red' : 'val-neutral');
+  document.getElementById('ts-real-wr-sub').textContent = (stats.real_wins||0) + 'W / ' + (stats.real_losses||0) + 'L';
+
+  // Paper PnL — all trades estimate
+  const pnl = stats.total_pnl || 0;
+  const pnlEl = document.getElementById('ts-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Number(pnl).toFixed(2);
+  pnlEl.className = 'ts-val ' + (pnl >= 0 ? 'val-green' : 'val-red') + ' val-dim';
+  document.getElementById('ts-pnl-sub').textContent = 'all trades est.';
+
+  const vol = stats.total_volume || 0;
+  document.getElementById('ts-volume').textContent = '$' + (vol >= 1000 ? (vol/1000).toFixed(1)+'k' : vol.toFixed(0));
+}
+
+function update_mobile_symbols(stats) {
+  const grid = document.getElementById('mobile-sym-grid');
+  if (!grid) return;
+  const bySymbol = stats.by_symbol || {};
+  const paperSyms = stats.paper_symbols || [];
+  const isLive = !!stats.live_mode;
+  const sorted = Object.entries(bySymbol).sort((a,b) => b[1].win_rate - a[1].win_rate);
+  if (!sorted.length) {
+    grid.innerHTML = '<div style="font-size:9px;color:var(--text3);grid-column:span 2">No trade data yet</div>';
+    return;
+  }
+  grid.innerHTML = sorted.map(([sym, d]) => {
+    const wr = d.win_rate || 0;
+    const pnl = d.pnl || 0;
+    const wrColor = wr >= 80 ? 'var(--green)' : wr >= 60 ? 'var(--cyan)' : wr >= 45 ? 'var(--yellow)' : 'var(--red)';
+    const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const isPapered = paperSyms.includes(sym);
+    const isOn = isLive && !isPapered;
+    const pillClass = isOn ? 'sym-pill on' : 'sym-pill';
+    const pillLabel = isOn ? '● LIVE' : '○ PAPER';
+    const onclick = `ontouchend="evt_toggle(event,'${sym}')" onclick="evt_toggle(event,'${sym}')"`;
+    return `<div class="mobile-sym-card">
+      <div class="msym-top">
+        <span class="msym-name">${sym}</span>
+        <span class="msym-wr" style="color:${wrColor}">${wr}%</span>
+      </div>
+      <div class="msym-bot">
+        <span class="msym-wl">${d.wins}W/${d.losses}L</span>
+        <span class="msym-pnl" style="color:${pnlColor}">${pnl>=0?'+':''}$${pnl.toFixed(0)}</span>
+      </div>
+      <div class="sym-toggle">
+        <span class="${pillClass}" id="sym-pill-${sym}" ${onclick}>${pillLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const _toggleLock = {};
+function _symPills(sym) {
+  // Return both mobile and desktop pills for this symbol (either may not exist
+  // depending on viewport / data availability).
+  return [
+    document.getElementById('sym-pill-' + sym),
+    document.getElementById('sym-pill-d-' + sym),
+  ].filter(Boolean);
+}
+function _setPills(sym, live, label, sizeKeep) {
+  _symPills(sym).forEach(p => {
+    // Preserve desktop's smaller-pill inline sizing on the desktop instance only
+    const isDesktop = p.id.startsWith('sym-pill-d-');
+    p.className = live ? 'sym-pill on' : 'sym-pill';
+    p.textContent = label;
+    if (isDesktop) {
+      p.style.height = '18px';
+      p.style.minWidth = '38px';
+      p.style.fontSize = '8px';
+      p.style.padding = '0 6px';
+    }
+  });
+}
+function evt_toggle(e, sym) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (_toggleLock[sym]) return;
+  _toggleLock[sym] = true;
+  setTimeout(() => { delete _toggleLock[sym]; }, 600);
+  const pills = _symPills(sym);
+  const isOn = pills.length > 0 && pills[0].classList.contains('on');
+  toggleSymbol(sym, isOn);
+}
+
+async function toggleSymbol(sym, currentlyOn) {
+  // Optimistic UI update on every visible pill
+  if (currentlyOn) {
+    _setPills(sym, false, '○ PAPER');
+  } else {
+    _setPills(sym, true, '● LIVE');
+  }
+  try {
+    const resp = await fetch('/api/hft-settings', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({paper_symbol: sym, enabled: currentlyOn})
+    });
+    const d = await resp.json();
+    const isPapered = (d.paper_symbols || []).includes(sym);
+    const live = !isPapered && d.live_mode;
+    _setPills(sym, live, live ? '● LIVE' : '○ PAPER');
+  } catch(e) {
+    console.error('toggle error', e);
+    // Revert on error
+    _setPills(sym, currentlyOn, currentlyOn ? '● LIVE' : '○ PAPER');
+  }
+}
+
+// ── Strategy live/paper toggle (parallel to symbol toggle) ─────────────────
+const _stratLock = {};
+function _stratPill(strat) { return document.getElementById('strat-pill-' + strat); }
+function _setStratPill(strat, live) {
+  const p = _stratPill(strat);
+  if (!p) return;
+  p.className = live ? 'sym-pill on' : 'sym-pill';
+  p.textContent = live ? '● LIVE' : '○ PAPER';
+}
+function evt_toggle_strategy(e, strat) {
+  e.preventDefault(); e.stopPropagation();
+  if (_stratLock[strat]) return;
+  _stratLock[strat] = true;
+  setTimeout(() => { delete _stratLock[strat]; }, 600);
+  const p = _stratPill(strat);
+  const isOn = p && p.classList.contains('on');
+  toggleStrategy(strat, isOn);
+}
+async function toggleStrategy(strat, currentlyOn) {
+  _setStratPill(strat, !currentlyOn);  // optimistic flip
+  try {
+    const resp = await fetch('/api/hft-settings', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({paper_strategy: strat, enabled: currentlyOn})
+    });
+    const d = await resp.json();
+    const isPapered = (d.paper_strategies || []).includes(strat);
+    _setStratPill(strat, !isPapered && d.live_mode);
+  } catch(e) {
+    console.error('strat toggle error', e);
+    _setStratPill(strat, currentlyOn);  // revert
+  }
+}
+// Sync strategy pills from settings GET response — called on every refresh
+function _syncStrategyPills(settings) {
+  const paperStrats = (settings && settings.paper_strategies) || [];
+  const liveMode = !!(settings && settings.live_mode);
+  ['MOMENTUM-BURST','EXTREME-RIDE'].forEach(s => {
+    _setStratPill(s, liveMode && !paperStrats.includes(s));
+  });
+}
+
+// View state: 'current' = mode-filtered active file; 'lifetime' = deduped merge across all backups.
+// Default 'current' on page load (current behavior). Persists to localStorage so it sticks.
+let currentView = localStorage.getItem('hft_view') || 'current';
+function setView(v) {
+  currentView = v;
+  localStorage.setItem('hft_view', v);
+  // Update button states
+  document.getElementById('btn-view-current').className = 'toggle-btn' + (v==='current'?' active-paper':'');
+  document.getElementById('btn-view-lifetime').className = 'toggle-btn' + (v==='lifetime'?' active-live':'');
+  // Refresh button only visible in lifetime mode
+  document.getElementById('btn-refresh-lifetime').style.display = (v==='lifetime') ? 'inline-block' : 'none';
+  // Trigger immediate reload of trades + stats
+  refresh();
+}
+async function refreshLifetime() {
+  const btn = document.getElementById('btn-refresh-lifetime');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ merging…';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/hft-merge-lifetime', {method:'POST'});
+    const d = await r.json();
+    if (!d.ok) { alert('Merge failed: ' + (d.error || 'unknown')); }
+    else { await refresh(); }
+  } catch (e) {
+    alert('Merge error: ' + e);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+}
+// Apply initial view UI state once DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-view-current').className = 'toggle-btn' + (currentView==='current'?' active-paper':'');
+  document.getElementById('btn-view-lifetime').className = 'toggle-btn' + (currentView==='lifetime'?' active-live':'');
+  document.getElementById('btn-refresh-lifetime').style.display = (currentView==='lifetime') ? 'inline-block' : 'none';
+});
+
+async function refresh() {
+  try {
+    const tradesUrl = currentView === 'lifetime' ? '/api/hft-trades-lifetime' : '/api/hft-trades';
+    const [resp, balResp] = await Promise.all([
+      fetch(tradesUrl),
+      fetch('/api/balance').catch(() => null),
+    ]);
+    const data = await resp.json();
+    allTrades = data.trades || [];
+    const stats = data.stats || {};
+    // Sync mode from server state (in case another client changed it)
+    // Skip while a local mode save is in flight — otherwise we'd snap back to stale state
+    if (stats.live_mode !== undefined && !_modeSaving) {
+      walletLive = !!stats.wallet_live;
+      applyModeUI(stats.live_mode ? 'live' : 'paper');
+      const stakeEl = document.getElementById('stake-input');
+      // Don't overwrite the stake input while the user is editing it
+      if (stakeEl && document.activeElement !== stakeEl) {
+        stakeEl.value = Number(stats.stake || 5).toFixed(2);
+      }
+    }
+    update_top_stats(stats);
+    update_sidebar(stats, allTrades);
+    update_mobile_symbols(stats);
+    render_trades(allTrades);
+
+    // Live USDC + pUSD bankroll
+    try {
+      const bal = balResp ? await balResp.json() : null;
+      const sbEl   = document.getElementById('sb-bankroll');
+      const sbSub  = document.getElementById('sb-bankroll-sub');
+      const tbEl   = document.getElementById('topbar-balance');
+      if (bal && bal.balance != null && !bal.error) {
+        const b = Number(bal.balance);
+        const u = Number(bal.usdc_e || 0), p = Number(bal.pusd || 0);
+        if (sbEl) sbEl.textContent = '$' + b.toFixed(2);
+        if (sbEl) sbEl.className = 'stat-value ' + (b > 0 ? 'val-green' : 'val-neutral');
+        if (sbSub) sbSub.textContent = `USDC.e $${u.toFixed(2)} + pUSD $${p.toFixed(2)}`;
+        if (tbEl) {
+          tbEl.textContent = 'BAL: $' + b.toFixed(2);
+          tbEl.style.color = b > 0 ? 'var(--green,#0f8)' : 'var(--text3,#666)';
+        }
+      } else {
+        if (sbEl) sbEl.textContent = 'ERR';
+        if (tbEl) tbEl.textContent = 'BAL: ERR';
+      }
+    } catch(_) {}
+  } catch(e) {
+    console.error('HFT fetch error:', e);
+  }
+}
+
+// Filter tab clicks
+document.querySelectorAll('.ftab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    render_trades(allTrades);
+  });
+});
+
+loadSettings();
+refresh();
+setInterval(refresh, 4000);  // refresh every 4s to match scan interval
+
+async function loadBalance(){
+  try{
+    const r = await fetch('/api/balance');
+    const d = await r.json();
+    const el = document.getElementById('topbar-balance');
+    if(!el) return;
+    if(d.balance != null && !d.error){
+      el.textContent = 'BAL: $'+d.balance.toFixed(2);
+      el.style.color = d.balance > 0 ? 'var(--green,#0f8)' : 'var(--text3,#666)';
+    } else {
+      el.textContent = 'BAL: ERR';
+    }
+  }catch(e){
+    const el = document.getElementById('topbar-balance');
+    if(el) el.textContent = 'BAL: ERR';
+  }
+}
+loadBalance();
+setInterval(loadBalance, 30000);  // 30s — chain calls cached 5min server-side anyway
+
+// ── RL Gate Panel ──────────────────────────────────────────────────────────
+let _rlData = null;
+let _rlTab = 'hft';
+let _rlFilter = 'blocked';  // 'blocked' | 'allowed' | 'all'
+let _rlOpen = false;
+
+function toggleRlDetail() {
+  _rlOpen = !_rlOpen;
+  document.getElementById('rl-detail').className = 'rl-detail' + (_rlOpen ? ' open' : '');
+  document.getElementById('rl-arrow').className = 'rl-title-arrow' + (_rlOpen ? ' open' : '');
+  if (_rlOpen && _rlData) render_rl_states();
+}
+
+function switchRlTab(tab) {
+  _rlTab = tab;
+  ['hft','manip','picks'].forEach(t => {
+    document.getElementById('rlt-'+t).className = 'rl-tab' + (t === tab ? ' active' : '');
+  });
+  render_rl_states();
+}
+
+function cycleRlFilter() {
+  const cycle = ['blocked', 'allowed', 'all'];
+  _rlFilter = cycle[(cycle.indexOf(_rlFilter) + 1) % cycle.length];
+  const labels = {blocked: '🚫 BLOCKED', allowed: '✓ ALLOWED', all: '◉ ALL'};
+  document.getElementById('rlt-filter').textContent = labels[_rlFilter];
+  render_rl_states();
+}
+
+function render_rl_states() {
+  if (!_rlData) return;
+  const tbl = _rlData[_rlTab];
+  if (!tbl) return;
+  const states = tbl.states.filter(s => _rlFilter === 'all' || s.status === _rlFilter);
+  const el = document.getElementById('rl-state-list');
+  if (!states.length) { el.innerHTML = '<div style="font-size:8px;color:var(--text3);padding:4px;">No states in this filter.</div>'; return; }
+  el.innerHTML = states.map(s => {
+    const qCls = s.q < 0 ? 'neg' : 'pos';
+    const sign = s.q >= 0 ? '+' : '';
+    return `<div class="rl-state-row ${s.status}">
+      <div class="rl-state-key" title="${s.key}">${s.key}</div>
+      <div class="rl-state-q ${qCls}">${sign}${s.q.toFixed(2)}</div>
+      <div class="rl-state-n">n${s.n}</div>
+    </div>`;
+  }).join('');
+}
+
+function render_rl_summary() {
+  if (!_rlData) return;
+  let html = '';
+  for (const [key, label] of [['hft','HFT'],['manip','MANIP'],['picks','PICKS']]) {
+    const d = _rlData[key];
+    if (!d) continue;
+    const tot = d.total || 1;
+    const bPct = (d.blocked / tot * 100).toFixed(0);
+    const aPct = (d.allowed / tot * 100).toFixed(0);
+    const ePct = (d.exploring / tot * 100).toFixed(0);
+    let shadowHtml = '';
+    if (_rlBlocked) {
+      const sd = key === 'hft' ? _rlBlocked.hft : _rlBlocked.picks_manip;
+      if (sd && sd.shadow_wr !== null && sd.shadow_wr !== undefined && sd.resolved > 0) {
+        const swrCls = sd.shadow_wr >= 60 ? 'val-red' : sd.shadow_wr >= 45 ? 'val-yellow' : 'val-green';
+        shadowHtml = ` <span class="${swrCls}" style="font-size:7px;font-weight:700;" title="Shadow WR of blocked (${sd.resolved} resolved)">~${sd.shadow_wr}%</span>`;
+      }
+    }
+    html += `<div class="rl-summary-row">
+      <div class="rl-name">${label}${shadowHtml}</div>
+      <div class="rl-blocked" title="Blocked">${d.blocked}</div>
+      <div class="rl-allowed" title="Allowed">✓${d.allowed}</div>
+      <div class="rl-exploring" title="Exploring">~${d.exploring}</div>
+      <div class="rl-bar-wrap">
+        <div class="rl-bar-blocked" style="width:${bPct}%"></div>
+        <div class="rl-bar-allowed" style="width:${aPct}%"></div>
+        <div class="rl-bar-explore" style="width:${ePct}%"></div>
+      </div>
+    </div>`;
+  }
+  if (_rlBlocked && _rlBlocked.combined) {
+    const comb = _rlBlocked.combined;
+    if (comb.shadow_wr !== null && comb.shadow_wr !== undefined && comb.resolved > 0) {
+      const cwrCls = comb.shadow_wr >= 60 ? 'val-red' : comb.shadow_wr >= 45 ? 'val-yellow' : 'val-green';
+      html += `<div style="font-size:8px;padding:3px 2px;color:var(--text3);">shadow <span class="${cwrCls}" style="font-weight:700;">${comb.shadow_wr}% WR</span> · ${comb.resolved}/${comb.total_blocked} resolved</div>`;
+    }
+  }
+  document.getElementById('rl-summary').innerHTML = html;
+}
+
+function update_rl_panel(data) {
+  _rlData = data;
+  render_rl_summary();
+  if (_rlOpen) render_rl_states();
+}
+
+async function refresh_rl() {
+  try {
+    const r = await fetch('/api/rl-state');
+    if (r.ok) update_rl_panel(await r.json());
+  } catch(e) {}
+}
+
+refresh_rl();
+setInterval(refresh_rl, 30000);  // RL tables update slowly, 30s is plenty
+
+// ── RL Shadow (blocked trade outcomes) ────────────────────────────────────
+let _rlBlocked = null;
+
+function update_rl_shadow(data) {
+  _rlBlocked = data;
+  render_rl_summary();
+}
+
+async function refresh_rl_shadow() {
+  try {
+    const r = await fetch('/api/rl-blocked');
+    if (r.ok) update_rl_shadow(await r.json());
+  } catch(e) {}
+}
+
+refresh_rl_shadow();
+setInterval(refresh_rl_shadow, 60000);  // shadow resolves slowly — 60s is fine
+
+// ── GRID SEARCH BACKTEST ──────────────────────────────────────────────────────
+let btResults = [];
+let btBaseline = {};
+let btSortKey  = 'edge';
+let btFilterMode = 'all';
+let btSymbolOverrides = {};   // 2026-05-22: cached from /api/hft-backtest-max for auto-fill
+
+function escHtmlBt(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function runBacktest() {
+  const btn = document.getElementById('bt-run-btn');
+  const status = document.getElementById('bt-status');
+  btn.textContent = '⏳ RUNNING...';
+  btn.disabled = true;
+  status.textContent = 'running grid search...';
+  status.style.color = 'var(--yellow)';
+
+  try {
+    const r = await fetch('/api/hft-backtest');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d.error) { status.textContent = d.error; status.style.color='var(--red)'; return; }
+
+    btResults  = d.results  || [];
+    btBaseline = d.baseline || {};
+    btSymbolOverrides = d.symbol_overrides || {};
+
+    const bl = btBaseline;
+    const blEl = document.getElementById('bt-base-stats');
+    if (blEl) {
+      blEl.innerHTML =
+        `n=<b style="color:var(--text)">${bl.n}</b> &nbsp;` +
+        `WR=<b style="color:${bl.wr>=75?'var(--green)':'var(--yellow)'}">${bl.wr}%</b> &nbsp;` +
+        `edge=<b style="color:${bl.edge>=0?'var(--green)':'var(--red)'}">${bl.edge>0?'+':''}${bl.edge}pp</b> &nbsp;` +
+        `PnL=<b style="color:${bl.total_pnl>=0?'var(--green)':'var(--red)'}">$${bl.total_pnl}</b>`;
+    }
+
+    status.textContent = `${d.n_combos} combos from ${d.n_total} trades`;
+    status.style.color = 'var(--green)';
+
+    document.getElementById('bt-baseline').style.display = 'block';
+    document.getElementById('bt-table-wrap').style.display = 'block';
+    document.getElementById('bt-controls').style.display = 'flex';
+    document.getElementById('bt-empty').style.display = 'none';
+    // hide MAX recs panel if user goes back to regular RUN
+    const recsEl = document.getElementById('bt-max-recs');
+    if (recsEl) recsEl.style.display = 'none';
+
+    renderBtTable();
+  } catch(e) {
+    status.textContent = 'error: ' + e.message;
+    status.style.color = 'var(--red)';
+  } finally {
+    btn.textContent = '↺ RE-RUN';
+    btn.disabled = false;
+  }
+}
+
+// ── MAX backtest — exhaustive 4-variable combo search + symbol_overrides recs ─
+async function runMaxBacktest() {
+  const btn      = document.getElementById('bt-max-btn');
+  const runBtn   = document.getElementById('bt-run-btn');
+  const status   = document.getElementById('bt-status');
+  btn.textContent = '⏳ MAX...';
+  btn.disabled = true;
+  runBtn.disabled = true;
+  status.textContent = 'running exhaustive grid (1-4 var)...';
+  status.style.color = 'var(--yellow)';
+
+  try {
+    const r = await fetch('/api/hft-backtest-max');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d.error) { status.textContent = d.error; status.style.color='var(--red)'; return; }
+
+    btResults  = d.results  || [];
+    btBaseline = d.baseline || {};
+    btSymbolOverrides = d.symbol_overrides || {};
+
+    const bl = btBaseline;
+    const blEl = document.getElementById('bt-base-stats');
+    if (blEl) {
+      blEl.innerHTML =
+        `n=<b style="color:var(--text)">${bl.n}</b> &nbsp;` +
+        `WR=<b style="color:${bl.wr>=75?'var(--green)':'var(--yellow)'}">${bl.wr}%</b> &nbsp;` +
+        `edge=<b style="color:${bl.edge>=0?'var(--green)':'var(--red)'}">${bl.edge>0?'+':''}${bl.edge}pp</b> &nbsp;` +
+        `PnL=<b style="color:${bl.total_pnl>=0?'var(--green)':'var(--red)'}">$${bl.total_pnl}</b>`;
+    }
+
+    status.textContent = `MAX: ${d.n_combos} combos from ${d.n_total} trades`;
+    status.style.color = 'var(--red)';
+
+    document.getElementById('bt-baseline').style.display = 'block';
+    document.getElementById('bt-table-wrap').style.display = 'block';
+    document.getElementById('bt-controls').style.display = 'flex';
+    document.getElementById('bt-empty').style.display = 'none';
+
+    renderBtTable();
+    renderRecs(d.recommendations || {});
+    renderCellOverrides(d.all_cells || [], d.cell_overrides || {});
+    renderRlBlocked(d.rl_blocked_cells || [], d.cell_overrides || {});
+  } catch(e) {
+    status.textContent = 'error: ' + e.message;
+    status.style.color = 'var(--red)';
+  } finally {
+    btn.textContent = '↺ MAX';
+    btn.disabled = false;
+    runBtn.disabled = false;
+  }
+}
+
+// ── HFT cell-override panel (added 2026-05-22) ──────────────────────────────
+async function setHftCellOverride(symbol, direction, strategy, mode, filters, bypassRl) {
+  const key = `${symbol}|${direction}|${strategy}`;
+  const verb = mode === null ? 'clearing' : `setting to ${mode}${bypassRl ? '+bypass_rl' : ''}`;
+  try {
+    const body = (mode === null)
+      ? {symbol, direction, strategy}
+      : {symbol, direction, strategy, mode,
+         ...(filters && Object.keys(filters).length ? {filters} : {}),
+         ...(bypassRl ? {bypass_rl: true} : {})};
+    const opts = {
+      method: mode === null ? 'DELETE' : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    };
+    const r = await fetch('/api/hft-cell-override', opts);
+    if (!r.ok) {
+      const err = await r.json().catch(()=>({error:'HTTP '+r.status}));
+      alert(`HFT cell override ${verb} failed for ${key}:\n${err.error || 'unknown'}`);
+      return;
+    }
+    if (typeof showToast === 'function') showToast(`HFT cell ${verb}: ${key}${filters && Object.keys(filters).length ? ' [filtered]' : ''}`);
+    runMaxBacktest();
+  } catch(e) {
+    alert(`HFT cell override ${verb} error for ${key}:\n${e.message}`);
+  }
+}
+
+// Resolve a combo's dimensions into one-or-more concrete (sym, dir, strat) cell keys.
+// Strategy: when the strategy dim is ambiguous (symbol allows multiple strategies in its
+// whitelist), BROADCAST the override across every allowed strategy — same filters applied
+// to each. Returns:
+//   {sym, dirs: [...], strats: [...], directionConflict: bool, ambiguous: [...]}
+// directionConflict=true means the combo's specified direction is not in the symbol's whitelist
+// (e.g. symbol=SOL + direction=UP when SOL allows only DOWN) — useless to create that override
+// since symbol_overrides blocks the signal before the cell_override check.
+function _resolveCellKeyFromDims(dims) {
+  const sym  = dims.symbol  || null;
+  let dirIn  = dims.direction || null;
+  let stratIn = dims.strategy || null;
+  let dirs = [], strats = [];
+  let autoFilledDir = false, autoFilledStrat = false, directionConflict = false;
+  const ambiguous = [];
+  if (!sym) ambiguous.push('symbol');
+
+  const ovr = sym ? (btSymbolOverrides[sym] || {}) : {};
+  const allowedDirs   = Array.isArray(ovr.directions)  ? ovr.directions  : null;
+  const allowedStrats = Array.isArray(ovr.strategies)  ? ovr.strategies.filter(s => s !== '__BLOCKED__') : null;
+
+  // Direction resolution: keep specified dir if matches whitelist (or no whitelist). Auto-fill from
+  // whitelist when unspecified. Skip the combo entirely if combo says X but whitelist doesn't allow X.
+  if (dirIn) {
+    if (allowedDirs && allowedDirs.length && !allowedDirs.includes(dirIn)) {
+      directionConflict = true;
+    } else {
+      dirs = [dirIn];
+    }
+  } else if (allowedDirs && allowedDirs.length === 1) {
+    dirs = allowedDirs.slice();
+    autoFilledDir = true;
+  } else if (allowedDirs && allowedDirs.length > 1) {
+    // multi-direction allowed but combo didn't specify — broadcast across all
+    dirs = allowedDirs.slice();
+    autoFilledDir = true;
+  } else {
+    ambiguous.push('direction');
+  }
+
+  // Strategy resolution: similar — broadcast across all allowed strategies if combo didn't specify.
+  if (stratIn) {
+    if (allowedStrats && allowedStrats.length && !allowedStrats.includes(stratIn)) {
+      // Strategy specified but not in whitelist — still proceed (cell_override stored but symbol_overrides will block).
+      // Track it but don't block button.
+      strats = [stratIn];
+    } else {
+      strats = [stratIn];
+    }
+  } else if (allowedStrats && allowedStrats.length >= 1) {
+    strats = allowedStrats.slice();
+    autoFilledStrat = true;
+  } else {
+    ambiguous.push('strategy');
+  }
+
+  return {
+    sym, dirs, strats,
+    autoFilledDir, autoFilledStrat,
+    directionConflict, ambiguous,
+    broadcastN: dirs.length * strats.length,   // number of overrides this combo will produce
+  };
+}
+
+// Set override directly from a MAX combo row's dimensions. Auto-fills + broadcasts across all
+// (dir × strat) combinations allowed by the symbol's whitelist. Remaining dimensions
+// (hour, session, timeframe, price, secs) become filters on each created override.
+async function setHftCellOverrideFromCombo(comboDimsJson, mode) {
+  let dims;
+  try { dims = JSON.parse(comboDimsJson); } catch (e) { alert('combo dims parse error: '+e.message); return; }
+  const resolved = _resolveCellKeyFromDims(dims);
+  if (resolved.directionConflict) {
+    alert(
+      `Direction conflict — combo says direction=${dims.direction} but the symbol's whitelist ` +
+      `(hft_settings.json symbol_overrides.${dims.symbol}.directions) only allows ` +
+      `[${(btSymbolOverrides[dims.symbol]?.directions || []).join(', ')}].\n\n` +
+      `Creating an override for this combo would do nothing (symbol_overrides blocks before cell_overrides). ` +
+      `If you really want trades in direction=${dims.direction} for ${dims.symbol}, first add it to the ` +
+      `symbol's whitelist.`
+    );
+    return;
+  }
+  if (resolved.ambiguous.length) {
+    alert(
+      `Can't override this combo — ambiguous ${resolved.ambiguous.join(', ')}.\n\n` +
+      `Pick a combo that specifies symbol, or one where ${dims.symbol || '?'} has direction/strategy ` +
+      `restrictions in symbol_overrides.\n\n` +
+      `Currently for sym=${dims.symbol || '?'}: ` +
+      JSON.stringify(btSymbolOverrides[dims.symbol] || {}, null, 0)
+    );
+    return;
+  }
+  const filters = {};
+  for (const k of ['hour','session','timeframe','price','secs']) {
+    if (dims[k] !== undefined && dims[k] !== null) filters[k] = dims[k];
+  }
+  // Build the list of (dir, strat) cells this click should create.
+  const cells = [];
+  for (const d of resolved.dirs) {
+    for (const s of resolved.strats) {
+      cells.push({dir: d, strat: s});
+    }
+  }
+  // Confirm before broadcasting if N > 1.
+  if (cells.length > 1) {
+    const list = cells.map(c => `${resolved.sym}|${c.dir}|${c.strat}`).join('\n  ');
+    if (!confirm(
+      `This combo will create ${cells.length} cell overrides (broadcast across ambiguous dims):\n\n  ${list}\n\n` +
+      `Each will get mode=${mode} with the same filters: ${JSON.stringify(filters)}\n\n` +
+      `Proceed?`
+    )) return;
+  }
+  // POST each. Use Promise.all for parallel.
+  console.log('[CellOverride] broadcast:', cells.length, 'cells; sym=', resolved.sym, 'filters=', filters);
+  const results = await Promise.all(cells.map(c =>
+    fetch('/api/hft-cell-override', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        symbol: resolved.sym, direction: c.dir, strategy: c.strat, mode,
+        ...(Object.keys(filters).length ? {filters} : {}),
+      }),
+    }).then(r => r.ok ? r.json() : r.json().then(j => ({error: j.error || ('HTTP ' + r.status)})))
+  ));
+  const failed = results.filter(r => r.error);
+  if (failed.length) {
+    alert(`${failed.length} of ${cells.length} overrides failed:\n${failed.map(f => f.error).join('\n')}`);
+  } else if (typeof showToast === 'function') {
+    showToast(`Set ${cells.length} cell override(s): ${resolved.sym} → ${mode}`);
+  }
+  runMaxBacktest();
+}
+
+function renderCellOverrides(allCells, cellOverrides) {
+  const wrap = document.getElementById('bt-cell-overrides');
+  if (!wrap) return;
+  const cellsByKey = Object.fromEntries(allCells.map(c => [`${c.symbol}|${c.direction}|${c.strategy}`, c]));
+  const overrideKeys = Object.keys(cellOverrides || {});
+
+  // Resolve raw override value (string or {mode, ...filters}) to a normalized form.
+  const modeOf = v => (typeof v === 'string' ? v : (v && typeof v === 'object' ? v.mode : null));
+  const filtersOf = v => {
+    if (!v || typeof v !== 'object') return null;
+    const f = {};
+    for (const k of ['hour','session','timeframe','price','secs']) {
+      if (v[k] !== undefined) f[k] = v[k];
+    }
+    // 2026-05-22: bypass_rl shows as a special pill so user can see at a glance
+    // which cells have skipped the RL gate.
+    if (v.bypass_rl) f.bypass_rl = 'yes';
+    return Object.keys(f).length ? f : null;
+  };
+  const filterPills = f => {
+    if (!f) return '';
+    return Object.entries(f).map(([k,v]) => {
+      const display = Array.isArray(v) ? v.join('/') : v;
+      return `<span style="background:var(--bg2);color:var(--text2);padding:1px 4px;margin-left:3px;border-radius:2px;font-size:8px;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;border:1px solid var(--border2);">${escHtmlBt(k)}=${escHtmlBt(display)}</span>`;
+    }).join('');
+  };
+
+  const badge = key => {
+    const m = modeOf(cellOverrides[key]);
+    if (m === 'paper') return `<span style="background:#666;color:#fff;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">PAPER</span>`;
+    if (m === 'real')  return `<span style="background:#3c3;color:#fff;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700;">LIVE</span>`;
+    return `<span style="color:var(--text3);font-size:8px;">—</span>`;
+  };
+  const btns = (sym, dir, strat) => {
+    const k = `${sym}|${dir}|${strat}`;
+    const cur = modeOf(cellOverrides[k]);
+    const mk = (mode, label, bg, border) => `<button onclick="setHftCellOverride('${sym}','${dir}','${strat}','${mode}')" ${cur===mode?'disabled':''} style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:${cur===mode?'#444':bg};border:1px solid ${border};color:${cur===mode?'#888':'#fff'};border-radius:2px;cursor:${cur===mode?'default':'pointer'};letter-spacing:.05em;margin-right:3px;">${label}</button>`;
+    const clr = cur ? `<button onclick="setHftCellOverride('${sym}','${dir}','${strat}',null)" style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:#222;border:1px solid #555;color:#aaa;border-radius:2px;cursor:pointer;letter-spacing:.05em;">CLR</button>` : '';
+    return mk('paper','→PAPER','#5a1a1a','#a33') + mk('real','→LIVE','#1a5a1a','#3a3') + clr;
+  };
+
+  // 1) ACTIVE OVERRIDES table — every cell with a saved override (paper or real).
+  const activeBlock = (() => {
+    if (!overrideKeys.length) {
+      return `<div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:#fa3;margin-bottom:4px;letter-spacing:.05em;">🛠 ACTIVE CELL OVERRIDES (0)</div>
+        <div style="font-size:9px;color:var(--text3);padding:4px 0;">no cell overrides set</div>
+      </div>`;
+    }
+    const sorted = overrideKeys.slice().sort((a, b) => {
+      const ma = modeOf(cellOverrides[a]), mb = modeOf(cellOverrides[b]);
+      if (ma !== mb) return ma === 'real' ? -1 : 1;
+      return a.localeCompare(b);
+    });
+    const liveN = sorted.filter(k => modeOf(cellOverrides[k]) === 'real').length;
+    const paperN = sorted.length - liveN;
+    const rows = sorted.map(k => {
+      const [sym, dir, strat] = k.split('|');
+      const cell = cellsByKey[k];
+      const pnlCol = v => v >= 0 ? 'var(--green)' : 'var(--red)';
+      const avgC = cell ? `<td style="padding:3px 6px;text-align:right;color:${pnlCol(cell.avg_pnl)};">$${cell.avg_pnl}</td>` : `<td style="padding:3px 6px;text-align:right;color:var(--text3);">—</td>`;
+      const totC = cell ? `<td style="padding:3px 6px;text-align:right;color:${pnlCol(cell.total_pnl)};">$${cell.total_pnl}</td>` : `<td style="padding:3px 6px;text-align:right;color:var(--text3);">—</td>`;
+      const filt = filtersOf(cellOverrides[k]);
+      return `<tr>
+        <td style="padding:3px 6px;">${escHtmlBt(sym)}</td>
+        <td style="padding:3px 6px;">${escHtmlBt(dir)}</td>
+        <td style="padding:3px 6px;">${escHtmlBt(strat)}</td>
+        <td style="padding:3px 6px;text-align:right;">${cell ? cell.n : '—'}</td>
+        <td style="padding:3px 6px;text-align:right;">${cell ? cell.wr+'%' : '—'}</td>
+        ${avgC}
+        ${totC}
+        <td style="padding:3px 6px;text-align:left;font-size:8px;">${filt ? filterPills(filt) : '<span style="color:var(--text3);">—</span>'}</td>
+        <td style="padding:3px 6px;text-align:center;">${badge(k)}</td>
+        <td style="padding:3px 6px;white-space:nowrap;">${btns(sym, dir, strat)}</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:#fa3;margin-bottom:4px;letter-spacing:.05em;">🛠 ACTIVE CELL OVERRIDES (${sorted.length}) <span style="font-weight:400;color:var(--text3);">— ${liveN} live, ${paperN} paper</span></div>
+      <div style="font-size:8px;color:var(--text3);margin-bottom:3px;">Cell overrides take precedence over paper_symbols / paper_strategies / paper_directions. Filter pills mean the override only applies when ALL listed dimensions match the live signal.</div>
+      <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+        <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+          <th style="padding:3px 6px;text-align:left;">SYM</th>
+          <th style="padding:3px 6px;text-align:left;">DIR</th>
+          <th style="padding:3px 6px;text-align:left;">STRAT</th>
+          <th style="padding:3px 6px;text-align:right;">N</th>
+          <th style="padding:3px 6px;text-align:right;">WR</th>
+          <th style="padding:3px 6px;text-align:right;">AVG/TRADE</th>
+          <th style="padding:3px 6px;text-align:right;">TOTAL PNL</th>
+          <th style="padding:3px 6px;text-align:left;">FILTERS</th>
+          <th style="padding:3px 6px;text-align:center;">OVERRIDE</th>
+          <th style="padding:3px 6px;text-align:left;">ACTION</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  })();
+
+  // 2) ALL CELLS (n>=10) table — lets the operator set an override for any cell
+  // that doesn't appear in promote/quarantine, including currently-unoverridden ones.
+  const allCellsBlock = (() => {
+    if (!allCells.length) return '';
+    const pnlCol = v => v >= 0 ? 'var(--green)' : 'var(--red)';
+    const rows = allCells.slice(0, 40).map(c => {
+      const k = `${c.symbol}|${c.direction}|${c.strategy}`;
+      return `<tr>
+        <td style="padding:3px 6px;">${escHtmlBt(c.symbol)}</td>
+        <td style="padding:3px 6px;">${escHtmlBt(c.direction)}</td>
+        <td style="padding:3px 6px;">${escHtmlBt(c.strategy)}</td>
+        <td style="padding:3px 6px;text-align:right;">${c.n}</td>
+        <td style="padding:3px 6px;text-align:right;">${c.wr}%</td>
+        <td style="padding:3px 6px;text-align:right;color:${pnlCol(c.avg_pnl)};">$${c.avg_pnl}</td>
+        <td style="padding:3px 6px;text-align:right;color:${pnlCol(c.total_pnl)};">$${c.total_pnl}</td>
+        <td style="padding:3px 6px;text-align:center;">${badge(k)}</td>
+        <td style="padding:3px 6px;white-space:nowrap;">${btns(c.symbol, c.direction, c.strategy)}</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px;letter-spacing:.05em;">ALL CELLS (n&ge;10, top 40 by PnL)</div>
+      <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+        <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+          <th style="padding:3px 6px;text-align:left;">SYM</th>
+          <th style="padding:3px 6px;text-align:left;">DIR</th>
+          <th style="padding:3px 6px;text-align:left;">STRAT</th>
+          <th style="padding:3px 6px;text-align:right;">N</th>
+          <th style="padding:3px 6px;text-align:right;">WR</th>
+          <th style="padding:3px 6px;text-align:right;">AVG/TRADE</th>
+          <th style="padding:3px 6px;text-align:right;">TOTAL PNL</th>
+          <th style="padding:3px 6px;text-align:center;">OVERRIDE</th>
+          <th style="padding:3px 6px;text-align:left;">ACTION</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  })();
+
+  wrap.innerHTML = activeBlock + allCellsBlock;
+}
+
+// 2026-05-23: Min-edge threshold for UNBLOCK eligibility. Cells with counterfactual
+// avg_pnl below this are greyed out — slippage (typically 1-5c per trade) can eat the
+// thin edge so unblocking them is risky. Stored in localStorage so it persists across reloads.
+let _rlMinEdge = parseFloat(localStorage.getItem('rlMinEdge') || '0.5');
+function setRlMinEdge(v) {
+  const parsed = parseFloat(v);
+  if (Number.isFinite(parsed) && parsed >= -10 && parsed <= 50) {
+    _rlMinEdge = parsed;
+    localStorage.setItem('rlMinEdge', String(parsed));
+    if (typeof runMaxBacktest === 'function' && btResults.length) runMaxBacktest();
+  }
+}
+
+// Unblock an RL-suppressed cell — sets bypass_rl=true on its cell_override (paper mode by default
+// so the trade still respects paper_symbols/paper_directions; user can manually flip to real after).
+// The RL Q-table KEEPS LEARNING from outcomes — bypass just overrides the current gate decision.
+async function unblockHftCellFromRl(symbol, direction, strategy) {
+  if (!confirm(
+    `Unblock ${symbol} ${direction} ${strategy} from the RL gate?\n\n` +
+    `Trades for this cell will skip the RL Q-table check. Q-table still updates from outcomes ` +
+    `(learning continues). Trade goes to paper/live based on existing override + paper_symbols/etc.\n\n` +
+    `To undo: clear the cell override (CLR button).`
+  )) return;
+  return setHftCellOverride(symbol, direction, strategy, 'paper', null, true);
+}
+
+// RL-BLOCKED CELLS report (added 2026-05-22). Aggregates the shadow log of signals the
+// RL gate rejected. avg_pnl is COUNTERFACTUAL — what the trade WOULD have made if not blocked.
+// Positive avg_pnl means the gate is over-suppressing that cell.
+// 2026-05-22 update: cross-references with active cell_overrides so already-bypassed cells
+// show a "✓ BYPASSED" status instead of the →UNBLOCK button (with a →RE-BLOCK option to undo).
+function renderRlBlocked(rlBlockedCells, cellOverrides) {
+  const wrap = document.getElementById('bt-rl-blocked');
+  if (!wrap) return;
+  cellOverrides = cellOverrides || {};
+  const isBypassedKey = k => {
+    const v = cellOverrides[k];
+    return !!(v && typeof v === 'object' && v.bypass_rl);
+  };
+  if (!Array.isArray(rlBlockedCells) || !rlBlockedCells.length) {
+    wrap.innerHTML = `<div style="margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;color:#9bf;margin-bottom:4px;letter-spacing:.05em;">🚫 RL-BLOCKED CELLS (0)</div>
+      <div style="font-size:9px;color:var(--text3);padding:4px 0;">no resolved RL-blocked entries (n≥10 per cell)</div>
+    </div>`;
+    return;
+  }
+  const pnlCol = v => v >= 0 ? 'var(--green)' : 'var(--red)';
+  // Sort by total_pnl DESC so over-suppressed positive cells surface first.
+  const sorted = rlBlockedCells.slice().sort((a, b) => b.total_pnl - a.total_pnl);
+  const positives = sorted.filter(c => c.avg_pnl > 0.1).length;
+  const bypassedN = sorted.filter(c => isBypassedKey(`${c.symbol}|${c.direction}|${c.strategy}`)).length;
+  const rows = sorted.slice(0, 30).map(c => {
+    const key = `${c.symbol}|${c.direction}|${c.strategy}`;
+    const bypassed = isBypassedKey(key);
+    const belowEdge = c.avg_pnl < _rlMinEdge;   // 2026-05-23: slippage-risk gate
+    const flag = c.avg_pnl > 0.3 ? '<span title="Counterfactual PnL positive — RL gate may be over-suppressing this cell" style="color:#fa3;font-weight:700;">⚠</span>' : '';
+    const statusBadge = bypassed
+      ? `<span title="RL gate is bypassed for this cell (bypass_rl=true in cell_overrides). The Q-table still learns from outcomes; this is just a manual override." style="background:#0a4a0a;color:#9f9;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.05em;">✓ BYPASSED</span>`
+      : '';
+    let actionBtns;
+    if (bypassed) {
+      actionBtns = `<button onclick="setHftCellOverride('${c.symbol}','${c.direction}','${c.strategy}',null)" title="Clear the cell override (re-engages the RL gate)." style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:#222;border:1px solid #555;color:#aaa;border-radius:2px;cursor:pointer;letter-spacing:.05em;">→RE-BLOCK</button>`;
+    } else if (belowEdge) {
+      actionBtns = `<span title="avg_pnl $${c.avg_pnl} < threshold $${_rlMinEdge.toFixed(2)} — slippage (typically 1-5¢/trade) can eat thin counterfactual edges. Raise the threshold or skip this cell." style="font-size:8px;color:var(--text3);padding:2px 6px;border:1px dashed #555;border-radius:2px;background:#1a1a1a;letter-spacing:.05em;">⏸ low edge</span>`;
+    } else {
+      actionBtns = `<button onclick="unblockHftCellFromRl('${c.symbol}','${c.direction}','${c.strategy}')" title="Bypass the RL gate for this cell. The Q-table still updates from outcomes (learning continues). Trade still respects paper_symbols/cell_overrides for paper/real." style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 6px;background:#1a3a5a;border:1px solid #4af;color:#fff;border-radius:2px;cursor:pointer;letter-spacing:.05em;">→UNBLOCK</button>`;
+    }
+    const rowStyle = bypassed ? 'background:rgba(0,80,0,0.08);' : (belowEdge ? 'opacity:0.55;' : '');
+    return `<tr style="${rowStyle}">
+      <td style="padding:3px 6px;">${escHtmlBt(c.symbol)}</td>
+      <td style="padding:3px 6px;">${escHtmlBt(c.direction)}</td>
+      <td style="padding:3px 6px;">${escHtmlBt(c.strategy)}</td>
+      <td style="padding:3px 6px;text-align:right;">${c.n}</td>
+      <td style="padding:3px 6px;text-align:right;">${c.wr}%</td>
+      <td style="padding:3px 6px;text-align:right;color:${pnlCol(c.avg_pnl)};">$${c.avg_pnl}</td>
+      <td style="padding:3px 6px;text-align:right;color:${pnlCol(c.total_pnl)};">$${c.total_pnl}</td>
+      <td style="padding:3px 6px;text-align:right;font-size:9px;color:var(--text3);">${c.avg_q}</td>
+      <td style="padding:3px 6px;text-align:center;">${statusBadge || flag}</td>
+      <td style="padding:3px 6px;white-space:nowrap;">${actionBtns}</td>
+    </tr>`;
+  }).join('');
+  const bypassNote = bypassedN ? ` <span style="color:#9f9;font-weight:700;">— ${bypassedN} ✓ BYPASSED</span>` : '';
+  const eligibleN = sorted.filter(c => c.avg_pnl >= _rlMinEdge && !isBypassedKey(`${c.symbol}|${c.direction}|${c.strategy}`)).length;
+  wrap.innerHTML = `<div style="margin-bottom:12px;">
+    <div style="font-size:10px;font-weight:700;color:#9bf;margin-bottom:4px;letter-spacing:.05em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>🚫 RL-BLOCKED CELLS (${sorted.length} resolved, ${positives} ⚠ over-suppression)${bypassNote} — ${eligibleN} above threshold</span>
+      <span style="font-weight:400;color:var(--text3);font-size:9px;">min-edge filter $</span>
+      <input id="rl-min-edge-input" type="number" step="0.1" min="-10" max="50" value="${_rlMinEdge.toFixed(2)}" onchange="setRlMinEdge(this.value)" style="width:48px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:1px 3px;font-family:'IBM Plex Mono',monospace;font-size:9px;">
+      <span style="font-weight:400;color:var(--text3);font-size:8px;">cells below this avg/trade can't be unblocked (slippage risk).</span>
+    </div>
+    <div style="font-size:8px;color:var(--text3);margin-bottom:3px;">Historical: signals the RL gate rejected. AVG PNL is what the trade WOULD have made if let through. <b>→UNBLOCK</b> bypasses the gate going forward. <b>⏸ low edge</b> = below min-edge threshold (slippage may eat the counterfactual edge — typically 1-5¢/trade for these markets).</div>
+    <table style="width:100%;font-size:10px;border-collapse:collapse;background:var(--bg3);border:1px solid var(--border2);">
+      <thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+        <th style="padding:3px 6px;text-align:left;">SYM</th>
+        <th style="padding:3px 6px;text-align:left;">DIR</th>
+        <th style="padding:3px 6px;text-align:left;">STRAT</th>
+        <th style="padding:3px 6px;text-align:right;">N</th>
+        <th style="padding:3px 6px;text-align:right;">WR</th>
+        <th style="padding:3px 6px;text-align:right;">AVG/TRADE (CF)</th>
+        <th style="padding:3px 6px;text-align:right;">TOTAL PNL (CF)</th>
+        <th style="padding:3px 6px;text-align:right;">AVG Q</th>
+        <th style="padding:3px 6px;text-align:center;">STATUS</th>
+        <th style="padding:3px 6px;text-align:left;">ACTION</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderRecs(recs) {
+  const wrap = document.getElementById('bt-max-recs');
+  const promoteDiv = document.getElementById('bt-recs-promote');
+  const quarDiv    = document.getElementById('bt-recs-quarantine');
+  if (!wrap || !promoteDiv || !quarDiv) return;
+
+  const fmtRow = r => {
+    const edgeCol = r.edge >= 0 ? 'var(--green)' : 'var(--red)';
+    const pnlCol  = r.total_pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<tr>
+      <td style="padding:3px 6px;">${escHtmlBt(r.symbol)}</td>
+      <td style="padding:3px 6px;">${escHtmlBt(r.strategy)}</td>
+      <td style="padding:3px 6px;">${escHtmlBt(r.direction)}</td>
+      <td style="padding:3px 6px;text-align:right;">${r.n}</td>
+      <td style="padding:3px 6px;text-align:right;">${r.wr}%</td>
+      <td style="padding:3px 6px;text-align:right;color:${edgeCol};">${r.edge>=0?'+':''}${r.edge}pp</td>
+      <td style="padding:3px 6px;text-align:right;color:${pnlCol};">$${r.total_pnl}</td>
+      <td style="padding:3px 6px;font-size:8px;color:var(--text3);">${escHtmlBt(r.recommendation)}</td>
+    </tr>`;
+  };
+
+  const tableHdr = `<thead><tr style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">
+    <th style="padding:3px 6px;text-align:left;">SYM</th>
+    <th style="padding:3px 6px;text-align:left;">STRAT</th>
+    <th style="padding:3px 6px;text-align:left;">DIR</th>
+    <th style="padding:3px 6px;text-align:right;">N</th>
+    <th style="padding:3px 6px;text-align:right;">WR</th>
+    <th style="padding:3px 6px;text-align:right;">EDGE</th>
+    <th style="padding:3px 6px;text-align:right;">PnL</th>
+    <th style="padding:3px 6px;text-align:left;">REC</th>
+  </tr></thead>`;
+
+  const pr = recs.promote_live || [];
+  const qu = recs.quarantine_to_paper || [];
+
+  promoteDiv.innerHTML = `
+    <div style="font-size:10px;color:var(--green);margin-bottom:4px;font-weight:700;">✓ PROMOTE TO LIVE (${pr.length})</div>
+    ${pr.length === 0
+      ? '<div style="font-size:9px;color:var(--text3);padding:6px 0;">no cells meet edge ≥ +8pp with positive PnL on n≥15</div>'
+      : `<table style="width:100%;font-size:10px;border-collapse:collapse;">${tableHdr}<tbody>${pr.map(fmtRow).join('')}</tbody></table>`}
+  `;
+
+  quarDiv.innerHTML = `
+    <div style="font-size:10px;color:var(--red);margin-bottom:4px;font-weight:700;">✗ QUARANTINE TO PAPER (${qu.length})</div>
+    ${qu.length === 0
+      ? '<div style="font-size:9px;color:var(--text3);padding:6px 0;">no cells meet edge ≤ -8pp or PnL ≤ -$50 on n≥15</div>'
+      : `<table style="width:100%;font-size:10px;border-collapse:collapse;">${tableHdr}<tbody>${qu.map(fmtRow).join('')}</tbody></table>`}
+  `;
+
+  wrap.style.display = 'block';
+}
+
+function btSort(key) {
+  btSortKey = key;
+  ['edge','wr','total_pnl','sharpe'].forEach(k => {
+    const el = document.getElementById('bt-sort-' + k);
+    if (el) el.className = 'ftab' + (k === key ? ' active' : '');
+  });
+  renderBtTable();
+}
+
+function btFilter(mode) {
+  btFilterMode = mode;
+  ['all','pos','neg'].forEach(m => {
+    const el = document.getElementById('bt-f-' + m);
+    if (el) el.className = 'ftab' + (m === mode ? ' active' : '');
+  });
+  renderBtTable();
+}
+
+function renderBtTable() {
+  const tbody = document.getElementById('bt-tbody');
+  if (!tbody) return;
+
+  const search = (document.getElementById('bt-search')?.value || '').toLowerCase();
+
+  let rows = btResults.slice();
+
+  // Filter
+  if (btFilterMode === 'pos') rows = rows.filter(r => r.edge > 0);
+  else if (btFilterMode === 'neg') rows = rows.filter(r => r.edge < 0);
+  if (search) rows = rows.filter(r => r.combo.toLowerCase().includes(search));
+
+  // Sort
+  rows.sort((a, b) => b[btSortKey] - a[btSortKey]);
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;font-size:9px;color:var(--text3);">No results match filter</td></tr>';
+    return;
+  }
+
+  const blWr = btBaseline.wr || 0;
+
+  tbody.innerHTML = rows.slice(0, 150).map((r, i) => {
+    const edgeColor  = r.edge > 5 ? 'var(--green)' : r.edge > 0 ? 'var(--yellow)' : 'var(--red)';
+    const wrColor    = r.wr > blWr + 5 ? 'var(--green)' : r.wr > blWr - 5 ? 'var(--text)' : 'var(--red)';
+    const pnlColor   = r.total_pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const pnlSign    = r.total_pnl >= 0 ? '+' : '';
+    const sharpeColor= r.sharpe > 0.5 ? 'var(--green)' : r.sharpe > 0 ? 'var(--text2)' : 'var(--red)';
+    const rowBg      = r.edge > 10 ? 'background:rgba(0,200,122,0.04)' : r.edge < -5 ? 'background:rgba(255,59,59,0.04)' : '';
+
+    // Highlight combo segments
+    const comboHtml = escHtmlBt(r.combo)
+      .replace(/strategy=([^ +]+)/g, '<span style="color:var(--cyan)">strategy=$1</span>')
+      .replace(/symbol=([^ +]+)/g,   '<span style="color:var(--yellow)">symbol=$1</span>')
+      .replace(/secs=([^ +]+)/g,     '<span style="color:var(--purple)">secs=$1</span>')
+      .replace(/session=([^ +]+)/g,  '<span style="color:var(--blue)">session=$1</span>')
+      .replace(/price=([^ +]+)/g,    '<span style="color:var(--orange)">price=$1</span>');
+
+    // 2026-05-22: per-row override buttons. The combo dims become filters on the
+    // SYM|DIR|STRAT cell-override key. We auto-fill missing direction/strategy from the
+    // symbol's whitelist; if the whitelist has multiple allowed strategies, we BROADCAST
+    // (one click creates one override per allowed strategy, same filters on each).
+    const dimsJson = JSON.stringify(r.dims || {}).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const _resolved = (typeof _resolveCellKeyFromDims === 'function')
+      ? _resolveCellKeyFromDims(r.dims || {})
+      : {ambiguous: ['symbol','direction','strategy'], directionConflict: false, broadcastN: 0};
+    const _bN = _resolved.broadcastN || 0;
+    const _hint = (_resolved.autoFilledDir ? ` dir=${_resolved.dirs.join('/')}` : '')
+                + (_resolved.autoFilledStrat ? ` strat=${_resolved.strats.join('/')}` : '');
+    const _bSfx = _bN > 1 ? `*×${_bN}` : (_resolved.autoFilledDir || _resolved.autoFilledStrat ? '*' : '');
+    const actionBtns =
+      _resolved.directionConflict
+        ? `<span title="direction=${r.dims?.direction} not in ${r.dims?.symbol}'s whitelist — useless to override (symbol_overrides blocks first)" style="font-size:8px;color:var(--red);">✗ conflict</span>`
+      : _resolved.ambiguous.length
+        ? `<span title="Ambiguous: ${_resolved.ambiguous.join(', ')} unspecified and not in symbol whitelist. Pick a more-specific combo." style="font-size:8px;color:var(--text3);">—</span>`
+        : `<button onclick="setHftCellOverrideFromCombo('${dimsJson}','paper')" title="Override to PAPER${_hint}${_bN>1?` (broadcasts ${_bN} overrides)`:''}" style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 5px;background:${_bN>1?'#3a1010':'#5a1a1a'};border:1px solid #a33;color:#fff;border-radius:2px;cursor:pointer;margin-right:2px;">→P${_bSfx}</button>` +
+          `<button onclick="setHftCellOverrideFromCombo('${dimsJson}','real')"  title="Override to LIVE${_hint}${_bN>1?` (broadcasts ${_bN} overrides)`:''}"  style="font-size:8px;font-family:'IBM Plex Mono',monospace;padding:2px 5px;background:${_bN>1?'#103a10':'#1a5a1a'};border:1px solid #3a3;color:#fff;border-radius:2px;cursor:pointer;">→L${_bSfx}</button>`;
+
+    return `<tr style="${rowBg}">
+      <td style="color:var(--text3);font-size:9px;">${i+1}</td>
+      <td style="font-size:9px;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${comboHtml}</td>
+      <td style="font-size:9px;color:var(--text2);">${r.n}</td>
+      <td style="font-weight:700;color:${wrColor};">${r.wr}%</td>
+      <td style="font-size:9px;color:var(--text3);">${r.be_wr}%</td>
+      <td style="font-weight:700;color:${edgeColor};">${r.edge > 0 ? '+' : ''}${r.edge}pp</td>
+      <td style="font-weight:700;color:${pnlColor};">${pnlSign}$${r.total_pnl}</td>
+      <td style="font-size:9px;color:${pnlColor};">${r.avg_pnl > 0 ? '+' : ''}$${r.avg_pnl}</td>
+      <td style="font-size:9px;color:${sharpeColor};">${r.sharpe.toFixed(2)}</td>
+      <td style="white-space:nowrap;">${actionBtns}</td>
+    </tr>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

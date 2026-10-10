@@ -1,0 +1,16 @@
+anthropic
+cryptography
+eth-account
+flask
+flask-cors
+flask-socketio
+httpx
+matplotlib
+numpy
+orjson
+pandas
+py-clob-client-v2
+python-dotenv
+requests
+web3
+websocket-client
