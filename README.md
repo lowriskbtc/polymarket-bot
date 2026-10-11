@@ -1,5 +1,7 @@
 # Polymarket Prediction Bot
 
+[![CI](https://github.com/lowriskbtc/polymarket-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/lowriskbtc/polymarket-bot/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white) [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 A single-process trading bot and Flask dashboard for Polymarket's short-horizon crypto markets (5 minute and 15 minute up/down markets on BTC, ETH, SOL, XRP and others). It combines rule-based strategies, a small machine-learning model, and reinforcement-learning gates that learn which entries to skip.
 
 This repository is the **full-system snapshot from June 2026**. A later refactor stripped the bot down to the ML/RL scanners only. This version keeps the algorithmic strategies alongside them.
