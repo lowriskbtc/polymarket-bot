@@ -20,3 +20,4 @@ daily_notes*.json
 auto_pause_state.json
 btc_ml_model.json
 *_ml_model.json
+analysis_export_*.zip
