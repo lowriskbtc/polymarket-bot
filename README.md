@@ -49,6 +49,17 @@ The dashboard serves on http://127.0.0.1:5002.
 
 Without wallet credentials the bot cannot place orders and runs in paper mode. With credentials configured, each scanner has its own `live_mode` setting; a scanner trades live only when that setting is on and the wallet loaded successfully.
 
+## Fair-value research (logging only)
+
+A separate tool that tests one idea against real Polymarket prices: once a window is running, P(Up) is mostly a function of how far spot is from the start price, the time left and current volatility (`fair_value.py`). The logger records that fair value next to the live order book every few seconds and records each market's resolution. It places no orders.
+
+```bash
+python fair_value_logger.py                 # BTC,ETH,SOL,XRP x 5m,15m -> fair_value_log.jsonl
+python fair_value_report.py                 # calibration, model vs market, simulated trades
+```
+
+Leave the logger running for several days. The report treats a setting as worth paper-trading only if it is profitable in both the earlier and the later half of the data, with t ≥ 2 and 200+ trades.
+
 ## Safety notes
 
 - **Network exposure.** The dashboard has routes that change settings and place orders. It binds to `127.0.0.1` by default (`BOT_HOST` overrides). State-changing requests that come from another machine, or that pass through any proxy or tunnel (anything carrying forwarded-for headers), are rejected unless they carry `BOT_API_TOKEN` as an `X-API-Token` header or `?token=` parameter.
